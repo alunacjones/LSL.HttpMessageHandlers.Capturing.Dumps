@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <SnkFile>LSL.snk</SnkFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('$(SnkFile)')">
+    <AssemblyOriginatorKeyFile>$(SnkFile)</AssemblyOriginatorKeyFile>
+    <SignAssembly>True</SignAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Version>1.0.1</Version>
+    <PackageVersion>1.0.1</PackageVersion>
+    <PackageTags></PackageTags>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageDescription>Description here</PackageDescription>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/alunacjones/LSL.HttpMessageHandlers.Capturing.Dumps</RepositoryUrl>
+    <Authors>alunacjones</Authors>
+    <LangVersion>12</LangVersion>
+    <PackageIcon>icon.png</PackageIcon>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LSL.HttpMessageHandlers.Capturing.Core" Version="2.0.2" />
+  </ItemGroup>
+
+  <Target Name="CopyReadmeAndValidate" BeforeTargets="Build">
+    <PropertyGroup>
+      <ReadmeContent>$([System.IO.File]::ReadAllText('../../readme.md').TrimEnd())</ReadmeContent>
+    </PropertyGroup>
+
+    <Exec Command="powershell build/CopyReadmeToIndex.ps1" WorkingDirectory="../.." />
+
+    <PropertyGroup>
+      <HasNoTags>false</HasNoTags>
+      <HasNoDescription>false</HasNoDescription>
+      <HasNoReadmeContent>false</HasNoReadmeContent>
+      <ErrorIfMissing>false</ErrorIfMissing>
+      <HasNoTags Condition="'$(PackageTags)' == ''">true</HasNoTags>
+      <HasNoDescription Condition="$(PackageDescription) == 'Description here'">true</HasNoDescription>
+      <HasNoReadmeContent
+        Condition="$(ReadMeContent.Contains('Provide package documentation here.'))">true</HasNoReadmeContent>
+      <ErrorIfMissing Condition="$(Configuration) != 'Debug'">true</ErrorIfMissing>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ReportWarnings" AfterTargets="CopyReadmeAndValidate"
+    Condition="$(ErrorIfMissing) == 'false'">
+    <Warning Text="Package tags have not been set" Condition="$(HasNoTags)" />
+    <Warning Text="Package description has not been set" Condition="$(HasNoDescription)" />
+    <Warning Text="readme.md file has no documentation" Condition="$(HasNoReadmeContent)" />
+  </Target>
+
+  <Target Name="ReportErrors" AfterTargets="CopyReadmeAndValidate" Condition="$(ErrorIfMissing)">
+    <Error Text="Package tags have not been set" Condition="$(HasNoTags)" />
+    <Error Text="Package description has not been set" Condition="$(HasNoDescription)" />
+    <Error Text="readme.md file has no documentation" Condition="$(HasNoReadmeContent)" />
+  </Target>
+
+  <ItemGroup>
+    <None Include="..\..\readme.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>
