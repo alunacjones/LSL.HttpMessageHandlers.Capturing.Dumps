@@ -1,5 +1,6 @@
 using System;
 using LSL.HttpMessageHandlers.Capturing.Core;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -19,7 +20,7 @@ public static class DumpCapturingHandlerBuilderExtensions
     public static ICapturingHandlerBuilder AddDumpCapturingHandler(this ICapturingHandlerBuilder source, Action<IDumpCapturerBuilder>? configurator = null)
     {
         configurator ??= o => { };
-        var name = source.BuildUniqueName();
+        var name = source.AssertNotNull(nameof(source)).BuildUniqueName();
         var builder = new DefaultDumpCapturerBuilder(name, source.Services);
 
         configurator?.Invoke(builder);
@@ -35,7 +36,9 @@ public static class DumpCapturingHandlerBuilderExtensions
             .FluentlyTryAddSingleton<DumpCapturerOptionsResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
-            .FluentlyTryAddTransient<IHeaderMapper, DefaultHeaderMapper>();
+            .FluentlyTryAddTransient(sp => ActivatorUtilities.CreateInstance<DefaultHeaderMapper>(sp, Options.DefaultName))
+            .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()))            
+            .AddOptions<DefaultObfuscatorOptions>();
 
         return source;
     }

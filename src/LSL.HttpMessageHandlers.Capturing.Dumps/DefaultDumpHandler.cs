@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
@@ -9,6 +10,14 @@ internal class DefaultDumpHandler(IOptionsSnapshot<DefaultDumpHandlerOptions> op
     {
         // TODO
         var options = optionsSnapshot.Get(Name);
+        var jsonSettings = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+
+        var toOutput = JsonSerializer.Serialize(requestAndResponseDump, jsonSettings);
         return Task.CompletedTask;
     }
 }

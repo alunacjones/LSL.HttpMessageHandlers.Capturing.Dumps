@@ -1,3 +1,4 @@
+using System;
 using LSL.HttpMessageHandlers.Capturing.Core;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;

@@ -1,22 +1,29 @@
 using System;
-using System.Net.Http;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
+/// <summary>
+/// Request and response dump
+/// </summary>
 public class RequestAndResponseDump
 {
-    public decimal DurationInSeconds { get; set; }
-    public RequestDump Request { get; set; }
+    /// <summary>
+    /// The duration in seconds of the HTTP call
+    /// </summary>
+    public double DurationInSeconds { get; set; }
+
+    /// <summary>
+    /// The request dump of the HTTP call
+    /// </summary>
+    public RequestDump Request { get; set; } = default!;
+
+    /// <summary>
+    /// The response dup of the HTTP call. Is <see langword="null"/> if the send failed
+    /// </summary>
     public ResponseDump? Response { get; set; }
+
+    /// <summary>
+    /// If an exception is thrown on send, then this contains the exception
+    /// </summary>
     public Exception? Exception { get; set; }
-}
-
-public class RequestDump : ContentAndHeadersDump
-{
-    public Uri RequestUri { get; set; }
-    public HttpMethod HttpMethod { get; set; }
-}
-
-public class ResponseDump : ContentAndHeadersDump
-{    
 }

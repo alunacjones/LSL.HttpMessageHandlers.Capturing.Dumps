@@ -1,16 +1,15 @@
-using System;
-
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
 /// <summary>
-/// A <see cref="Uri"/> transformer
+/// Obfuscator interface
 /// </summary>
-public interface IUriTransformer
+public interface IObfuscator
 {
     /// <summary>
-    /// Transforms a <see cref="Uri"/>
+    /// Obfuscates the given string
     /// </summary>
+    /// <param name="key"></param>
     /// <param name="source"></param>
     /// <returns></returns>
-    Uri Transform(Uri source);
+    public string Obfuscate(string key, string source);
 }

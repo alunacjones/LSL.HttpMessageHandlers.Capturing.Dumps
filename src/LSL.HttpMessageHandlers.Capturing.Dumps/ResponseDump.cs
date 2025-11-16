@@ -1,9 +1,8 @@
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
 /// <summary>
-/// Default dump handler options
+/// The response dump
 /// </summary>
-public class DefaultDumpHandlerOptions
-{
-    
+public class ResponseDump : ContentAndHeadersDump
+{    
 }

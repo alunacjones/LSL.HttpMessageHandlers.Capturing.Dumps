@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using LSL.HttpMessageHandlers.Capturing.Core;
 
@@ -9,15 +10,17 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
     {
         var result = new RequestAndResponseDump()
         {
+            DurationInSeconds = captureContext.TimeToRun.TotalSeconds,            
             Request = new()
             {
                 RequestUri = options.UriTransformer(captureContext.Request.RequestUri),
-                HttpMethod = captureContext.Request.Method,
+                HttpMethod = captureContext.Request.Method.Method,
                 Content = new(),
-                Headers = (captureContext.Request.Content is null 
+                Headers = options.HeaderMapper.MapHeaders((captureContext.Request.Content is null 
                     ? captureContext.Request.Headers
                     : captureContext.Request.Content.Headers.Concat(captureContext.Request.Headers))
                     .OrderBy(h => h.Key)
+                    .ToHeaderDictionary())
             }
         };
 
@@ -25,10 +28,11 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
             result.Response = new()
             {
                 Content = new(),
-                Headers = (res.Content.Headers is null
+                Headers = options.HeaderMapper.MapHeaders((res.Content.Headers is null
                     ? res.Headers
                     : res.Content.Headers.Concat(res.Headers))
                     .OrderBy(h => h.Key)
+                    .ToHeaderDictionary())
             }
         );
 
@@ -36,4 +40,10 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
 
         return result;
     }
+}
+
+internal static class HeadersExtensions
+{
+    public static IDictionary<string, IEnumerable<string>> ToHeaderDictionary(this IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers) => 
+        headers.GroupBy(h => h.Key).ToDictionary(h => h.Key, h => h.SelectMany(v => v.Value));
 }
