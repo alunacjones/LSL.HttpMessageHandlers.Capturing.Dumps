@@ -6,7 +6,7 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 /// <summary>
 /// Query parameter obfuscating URI transformer options
 /// </summary>
-public class QueryParameterObfuscatingUriTransformerOptions
+public class QueryParameterObfuscatingUriTransformerOptions : IHaveAnObfuscatorFactory<QueryParameterObfuscatingUriTransformerOptions>
 {
     /// <summary>
     /// A list of query string parameter keys to obfuscate
@@ -19,4 +19,7 @@ public class QueryParameterObfuscatingUriTransformerOptions
 
     /// <inheritdoc/>
     internal ServiceProviderBasedFactory<IObfuscator> ObfuscatorFactory { get; set; } = sp => sp.GetRequiredService<DefaultObfuscator>();
+
+    ServiceProviderBasedFactory<IObfuscator> IHaveAnObfuscatorFactory<QueryParameterObfuscatingUriTransformerOptions>.ObfuscatorFactory { get => ObfuscatorFactory; set => ObfuscatorFactory = value; }
+    QueryParameterObfuscatingUriTransformerOptions IHaveAnObfuscatorFactory<QueryParameterObfuscatingUriTransformerOptions>.Options => this;
 }

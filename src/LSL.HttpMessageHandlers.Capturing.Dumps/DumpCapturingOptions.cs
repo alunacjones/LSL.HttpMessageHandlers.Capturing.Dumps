@@ -10,5 +10,5 @@ public class DumpCapturingOptions
 {
     internal List<ServiceProviderBasedFactory<BaseDumpHandler>> DumpHandlerFactories { get; } = [];
     internal List<ServiceProviderBasedFactory<IUriTransformer>> UrlTransformersFactories { get; } = [];
-    internal ServiceProviderBasedFactory<IHeaderMapper> HeaderMapperFactory { get; set; } = sp => sp.GetRequiredService<DefaultHeaderMapper>();
+    internal List<ServiceProviderBasedFactory<IHeaderMapper>> HeaderMapperFactories { get; set; } = [];
 }

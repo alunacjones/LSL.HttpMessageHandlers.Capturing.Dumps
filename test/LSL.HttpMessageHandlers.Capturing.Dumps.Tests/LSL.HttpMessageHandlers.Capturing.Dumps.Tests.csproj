@@ -16,6 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Diamond.Core.System.TemporaryFolder" Version="6.0.17" />
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="Newtonsoft.JSON" Version="13.0.3" />
     <PackageReference Include="nunit" Version="3.13.3" />

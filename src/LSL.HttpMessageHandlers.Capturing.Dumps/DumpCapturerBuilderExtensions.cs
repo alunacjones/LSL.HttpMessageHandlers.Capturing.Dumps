@@ -1,10 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
@@ -19,15 +17,25 @@ public static class DumpCapturerBuilderExtensions
     /// <param name="source"></param>
     /// <param name="configurator"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddDefaultDumpHandler(this IDumpCapturerBuilder source, Action<DefaultDumpHandlerOptions>? configurator = null)
-    {
-        configurator ??= o => {};
-        var name = OptionsHelper.BuildUniqueName(source.Name);
-        source.
-            Services
-            .Configure(name, configurator);
+    public static IDumpCapturerBuilder AddDefaultDumpHandler(this IDumpCapturerBuilder source, Action<DefaultDumpHandlerOptions>? configurator = null) => 
+        source.AddDumpHandler<DefaultDumpHandler>(name => source.Services.Configure(name, configurator.MakeNullSafe()));
 
-        return source.AddDumpHandler<DefaultDumpHandler>(source.Name);        
+    /// <summary>
+    /// Adds a dump handler factory to the dump capturer
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="factory"></param>
+    /// <param name="withNameAction"></param>
+    /// <returns></returns>
+    public static IDumpCapturerBuilder AddDumpHandler(
+        this IDumpCapturerBuilder source,
+        ServiceProviderBasedFactory<BaseDumpHandler> factory,
+        Action<string>? withNameAction = null)
+    {
+        var name = OptionsHelper.BuildUniqueName(source.Name);
+        source.Services.Configure<DumpCapturingOptions>(source.Name, c => c.DumpHandlerFactories.Add(sp => factory(sp).With(d => d.Name = name)));
+        withNameAction?.Invoke(name);
+        return source;
     }
 
     /// <summary>
@@ -35,16 +43,13 @@ public static class DumpCapturerBuilderExtensions
     /// </summary>
     /// <typeparam name="TDumpHandler"></typeparam>
     /// <param name="source"></param>
-    /// <param name="name"></param>
+    /// <param name="withNameAction"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddDumpHandler<TDumpHandler>(this IDumpCapturerBuilder source, string? name = null)
+    public static IDumpCapturerBuilder AddDumpHandler<TDumpHandler>(this IDumpCapturerBuilder source, Action<string>? withNameAction = null)
         where TDumpHandler : BaseDumpHandler
     {
-        name ??= OptionsHelper.BuildUniqueName(source.Name);
-        source.Services
-            .FluentlyTryAddTransient<TDumpHandler>()
-            .Configure<DumpCapturingOptions>(source.Name, c => c.DumpHandlerFactories.Add(sp => sp.GetRequiredService<TDumpHandler>().With(d => d.Name = name)));
-        return source;
+        source.Services.FluentlyTryAddTransient<TDumpHandler>();
+        return source.AddDumpHandler(sp => sp.GetRequiredService<TDumpHandler>(), withNameAction);
     }
 
     /// <summary>
@@ -53,21 +58,19 @@ public static class DumpCapturerBuilderExtensions
     /// <param name="source"></param>
     /// <param name="handlerDelegate"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddDumpHandlerDelegate(this IDumpCapturerBuilder source, Func<RequestAndResponseDump, Task> handlerDelegate)
-    {
-        var name = OptionsHelper.BuildUniqueName(source.Name);
-        source.Services.Configure<DelegatingDumpHandlerOptions>(name, c => c.DumpDelegate = handlerDelegate);
-        return source.AddDumpHandler<DelegatingDumpHandler>(name);
-    }
+    public static IDumpCapturerBuilder AddAsyncDumpHandlerDelegate(this IDumpCapturerBuilder source, Func<RequestAndResponseDump, Task> handlerDelegate) => 
+        source.AddDumpHandler<DelegatingDumpHandler>(
+            name => source.Services.Configure<DelegatingDumpHandlerOptions>(name, c => c.DumpDelegate = handlerDelegate)
+        );
 
     /// <summary>
-    /// Adds a sync dump handling delegate
+    /// Adds a synchronous dump handling delegate
     /// </summary>
     /// <param name="source"></param>
     /// <param name="handlerDelegate"></param>
     /// <returns></returns>
     public static IDumpCapturerBuilder AddDumpHandlerDelegate(this IDumpCapturerBuilder source, Action<RequestAndResponseDump> handlerDelegate) =>
-        source.AddDumpHandlerDelegate(dump =>
+        source.AddAsyncDumpHandlerDelegate(dump =>
         {
             handlerDelegate(dump);
             return Task.CompletedTask; 
@@ -79,9 +82,9 @@ public static class DumpCapturerBuilderExtensions
     /// <param name="source"></param>
     /// <param name="headerMapperFactory"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder UseHeaderMapper(this IDumpCapturerBuilder source, ServiceProviderBasedFactory<IHeaderMapper> headerMapperFactory)
+    public static IDumpCapturerBuilder AddHeaderMapper(this IDumpCapturerBuilder source, ServiceProviderBasedFactory<IHeaderMapper> headerMapperFactory)
     {
-        source.Services.Configure<DumpCapturingOptions>(source.Name, c => c.HeaderMapperFactory = headerMapperFactory);
+        source.Services.Configure<DumpCapturingOptions>(source.Name, c => c.HeaderMapperFactories.Add(headerMapperFactory));
         return source;
     }
 
@@ -94,32 +97,24 @@ public static class DumpCapturerBuilderExtensions
     /// <param name="source"></param>
     /// <param name="configurator"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder UseDefaultHeaderMapper(this IDumpCapturerBuilder source, Action<DefaultHeaderMapperOptions>? configurator = null)
+    public static IDumpCapturerBuilder AddDefaultHeaderMapper(this IDumpCapturerBuilder source, Action<DefaultHeaderMapperOptions>? configurator = null)
     {
-        source.Services.Configure<DefaultHeaderMapperOptions>(c =>
-        {
-            c.HeadersToObfuscate = ["Authorization"];
-            configurator?.Invoke(c);
-        });
-
-        return source;
+        var name = OptionsHelper.BuildUniqueName(source.Name);
+        source.Services.Configure<DefaultHeaderMapperOptions>(name, c => configurator?.Invoke(c));
+        return source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DefaultHeaderMapper>(sp, name));
     }
 
     /// <summary>
-    /// Adds <typeparamref name="THeaderMapper"/> to the URI transformer list
+    /// Adds <typeparamref name="THeaderMapper"/> to the dump capturer
     /// </summary>
     /// <typeparam name="THeaderMapper"></typeparam>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder UseHeaderMapper<THeaderMapper>(this IDumpCapturerBuilder source)
+    public static IDumpCapturerBuilder AddHeaderMapper<THeaderMapper>(this IDumpCapturerBuilder source)
         where THeaderMapper : class, IHeaderMapper
     {
-        source
-            .UseHeaderMapper(sp => sp.GetRequiredService<THeaderMapper>())
-            .Services
-            .FluentlyTryAddTransient<THeaderMapper>();
-
-        return source;        
+        source.Services.FluentlyTryAddTransient<THeaderMapper>();
+        return source.AddHeaderMapper(sp => sp.GetRequiredService<THeaderMapper>());        
     }
 
     /// <summary>
@@ -160,12 +155,11 @@ public static class DumpCapturerBuilderExtensions
         this IDumpCapturerBuilder source,
         Action<QueryParameterObfuscatingUriTransformerOptions>? configurator = null)
     {
-        configurator ??= o => { };
         var name = OptionsHelper.BuildUniqueName(source.Name);
-        source.Services.Configure(name, configurator);
+        source.Services.Configure(name, configurator.MakeNullSafe());
 
-        return source.AddUriTransformer(sp => ActivatorUtilities.CreateInstance<QueryParameterObfuscatingUriTransformer>(
-            sp, 
-            name));
+        return source.AddUriTransformer(sp => 
+            ActivatorUtilities.CreateInstance<QueryParameterObfuscatingUriTransformer>(sp, name)
+        );
     }
 }

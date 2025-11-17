@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Diamond.Core.System.TemporaryFolder;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using LSL.ExecuteIf;
+using LSL.HttpMessageHandlers.Capturing.Core;
 using LSL.HttpMessageHandlers.Capturing.Dumps.Tests.TestHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -20,28 +22,36 @@ public class DumpCapturingHandlerTests
     public async Task WhenCreated_ItShouldDumpTheExpectedData(bool useCustomHeaderMapper)
     {
         // Arrange
+        using var tempFolder = new TemporaryFolderFactory().Create();
+
         var capturedUrls = new List<string>();
         var provider = new ServiceCollection()
+            
             .AddMockHttpMessageHandler()
             .Configure<TestOptions>(c =>
             {
                 c.GetUri = "http://nowhere.com/?apikey=my-secret-thingy";
-                c.Headers.Add(new("X-Remove", "remove it"));
-                c.Headers.Add(new("X-Other-Remove", "duh"));
+                c.Headers.AddRange([
+                    new("X-Remove", "remove it"),
+                    new("X-Other-Remove", "duh"),
+                    new("Authorization", "Bearer my-fully-secret-thingy")
+                ]);
             })
             .AddHttpClient<MyTestClient>()            
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
                     .ExecuteIf(
                         useCustomHeaderMapper,
-                        c => c.UseHeaderMapper<TestHeaderMapper>(),
-                        c => c.UseDefaultHeaderMapper(c => 
-                        { 
-                            c.HeadersToObfuscate = ["X-Test"];
-                            c.HeadersToRemove = ["X-Other-Remove"];
-                        })
+                        c => c.AddHeaderMapper<TestHeaderMapper>(),
+                        c => c.AddDefaultHeaderMapper(c => c
+                            .UseDefaultObfuscator(c => 
+                            { 
+                                c.NumberOfCharactersToKeepClear = 3;
+                                c.ObfuscatingSuffix = "!!!";
+                            }).HeadersToRemove = ["X-Other-Remove"]
+                        )
                     )
-                    .AddQueryParameterObfuscatingUriTransformer()
+                    .AddQueryParameterObfuscatingUriTransformer(c => c.UseDefaultObfuscator(c => c.ObfuscatingSuffix = "..."))
                     .AddUriTransformer<TestUriTransformer>()
                     .AddDefaultDumpHandler()
                     .AddDumpHandlerDelegate(dump => capturedUrls.Add(dump.Request.RequestUri.ToString()))
@@ -70,6 +80,54 @@ public class DumpCapturingHandlerTests
         capturedUrls.Should().HaveCount(1);
     }
 
+    [Test]
+    public async Task WhenCreated_ItShouldDumpTheExpectedData()
+    {
+        // Arrange
+        using var tempFolder = new TemporaryFolderFactory().Create();
+
+        var capturedUrls = new List<string>();
+        var provider = new ServiceCollection()
+            
+            .AddMockHttpMessageHandler()
+            .Configure<TestOptions>(c =>
+            {
+                c.GetUri = "http://nowhere.com/?apikey=my-secret-thingy";
+                c.Headers.AddRange([
+                    new("X-Remove", "remove it"),
+                    new("X-Other-Remove", "duh"),
+                    new("Authorization", "Bearer my-fully-secret-thingy")
+                ]);
+            })
+            .AddHttpClient<MyTestClient>()            
+            .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandlerWithDefaults(c => c
+                    .AddDumpHandlerDelegate(dump => capturedUrls.Add(dump.Request.RequestUri.ToString()))
+                )
+            )
+            .Services
+            .BuildServiceProvider();
+
+        var options = provider.GetRequiredService<IOptions<TestOptions>>();
+        var client = provider.GetRequiredService<MyTestClient>();
+        var mockHttpMessageHandler = provider.GetMockHttpHandler();
+        mockHttpMessageHandler.When(options.Value.GetUri)
+            .Respond(
+                new Dictionary<string, string>
+                {
+                    { "X-Test", "ewq" }
+                },
+                JsonContent.Create(new { Name = "Als"}));
+
+        // Act
+        await client.SendRequest();
+        
+        // Assert
+        using var assertionScope = new AssertionScope();
+        
+        capturedUrls.Should().HaveCount(1);        
+    }
+
     private class MyTestClient
     {
         private readonly HttpClient _httpClient;
@@ -96,14 +154,9 @@ public class DumpCapturingHandlerTests
 
     private class TestUriTransformer : IUriTransformer
     {
-        public Uri Transform(Uri source)
-        {
-            return new UriBuilder(source).ConfigureWith(u =>
-            {
-                u.Path = "transformed-path";
-            }).Uri;
-        }
+        public UriBuilder Transform(UriBuilder source) => source.ConfigureWith(c => c.Path = "transformed-path");
     }
+
     private class TestHeaderMapper : IHeaderMapper
     {
         public IDictionary<string, IEnumerable<string>> MapHeaders(IDictionary<string, IEnumerable<string>> originalHeaders)

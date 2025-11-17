@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Web;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Infrastructure;
 using Microsoft.Extensions.Options;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -22,12 +23,11 @@ internal class QueryParameterObfuscatingUriTransformer : IUriTransformer
     }
 
     /// <inheritdoc/>
-    public Uri Transform(Uri source)
+    public UriBuilder Transform(UriBuilder source)
     {
-        var builder = new UriBuilder(source);
-        var queryString = HttpUtility.ParseQueryString(builder.Query);
+        var queryString = HttpUtility.ParseQueryString(source.Query);
 
-        foreach (var toObfuscate in _options.Value.ParametersToObfuscate)
+        foreach (var toObfuscate in _options.Value.ParametersToObfuscate.AssertNotNull(nameof(QueryParameterObfuscatingUriTransformerOptions.ParametersToObfuscate)))
         {
             var values = queryString.GetValues(toObfuscate);
 
@@ -40,8 +40,8 @@ internal class QueryParameterObfuscatingUriTransformer : IUriTransformer
             }
         }
 
-        builder.Query = queryString.ToString();
+        source.Query = queryString.ToString();
 
-        return builder.Uri;
+        return source;
     }
 }

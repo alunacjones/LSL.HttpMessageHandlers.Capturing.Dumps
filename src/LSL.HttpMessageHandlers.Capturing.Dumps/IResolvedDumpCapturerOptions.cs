@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -21,5 +22,5 @@ public interface IResolvedDumpCapturerOptions
     /// <summary>
     /// The header mapper
     /// </summary>
-    IHeaderMapper HeaderMapper { get; }
+    Func<IDictionary<string, IEnumerable<string>>, IDictionary<string, IEnumerable<string>>> HeaderMapper { get; }
 }

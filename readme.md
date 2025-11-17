@@ -4,8 +4,26 @@
 
 # LSL.HttpMessageHandlers.Capturing.Dumps
 
-Provide package documentation here.
+Thi library provides quick and easy request and response dumping based on the [LSL.HttpMessageHandlers.Capturing.Core](https://www.nuget.org/packages/LSL.HttpMessageHandlers.Capturing.Core) library.
 
+## Quick Start
+
+The following code illustrates the addition of request and response dumping to a user profile folder based on the executing assembly:
+
+> **NOTE**: `services` is an `IServiceCollection` instance
+
+```csharp
+services.AddHttpClient<MyTestClient>()            
+    .AddRequestAndResponseCapturing(c => c
+        .AddDumpCapturingHandlerWithDefaults()
+    );
+
+// On resolution of MyTestClient, all JSON request and responses 
+// will be dumped into the current user's profile folder under the path
+// .http-output/{executing-assembly-name}.
+// {executing-assembly-name} is resolved using Assembly.GetExecutingAssembly()
+
+```
 <!-- HIDE -->
 ## Further Documentation
 

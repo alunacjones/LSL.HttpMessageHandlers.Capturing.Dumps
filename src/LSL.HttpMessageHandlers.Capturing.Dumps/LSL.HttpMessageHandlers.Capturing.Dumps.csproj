@@ -14,9 +14,9 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Version>1.0.1</Version>
     <PackageVersion>1.0.1</PackageVersion>
-    <PackageTags></PackageTags>
+    <PackageTags>http;message-handler;messagelhandler;handler;message;request;response;dump</PackageTags>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
-    <PackageDescription>Description here</PackageDescription>
+    <PackageDescription>HTTP dump capturing</PackageDescription>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/alunacjones/LSL.HttpMessageHandlers.Capturing.Dumps</RepositoryUrl>
     <Authors>alunacjones</Authors>

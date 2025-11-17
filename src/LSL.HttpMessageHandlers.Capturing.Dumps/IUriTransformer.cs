@@ -8,9 +8,9 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 public interface IUriTransformer
 {
     /// <summary>
-    /// Transforms a <see cref="Uri"/>
+    /// Transforms a <see cref="UriBuilder"/>
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    Uri Transform(Uri source);
+    UriBuilder Transform(UriBuilder source);
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Infrastructure;
 using Microsoft.Extensions.Options;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -28,12 +29,12 @@ internal class DefaultHeaderMapper : IHeaderMapper
 
     public IDictionary<string, IEnumerable<string>> MapHeaders(IDictionary<string, IEnumerable<string>> originalHeaders)
     {
-        foreach (var toRemove in _options.HeadersToRemove)
+        foreach (var toRemove in _options.HeadersToRemove.AssertNotNull(nameof(_options.HeadersToRemove)))
         {
             originalHeaders.Remove(toRemove);
         }
 
-        foreach (var toObfuscate in _options.HeadersToObfuscate)
+        foreach (var toObfuscate in _options.HeadersToObfuscate.AssertNotNull(nameof(_options.HeadersToObfuscate)))
         {
             if (originalHeaders.TryGetValue(toObfuscate, out var value))
             {

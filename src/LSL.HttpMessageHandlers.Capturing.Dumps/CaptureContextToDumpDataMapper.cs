@@ -16,7 +16,7 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
                 RequestUri = options.UriTransformer(captureContext.Request.RequestUri),
                 HttpMethod = captureContext.Request.Method.Method,
                 Content = new(),
-                Headers = options.HeaderMapper.MapHeaders((captureContext.Request.Content is null 
+                Headers = options.HeaderMapper((captureContext.Request.Content is null 
                     ? captureContext.Request.Headers
                     : captureContext.Request.Content.Headers.Concat(captureContext.Request.Headers))
                     .OrderBy(h => h.Key)
@@ -28,7 +28,7 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
             result.Response = new()
             {
                 Content = new(),
-                Headers = options.HeaderMapper.MapHeaders((res.Content.Headers is null
+                Headers = options.HeaderMapper((res.Content.Headers is null
                     ? res.Headers
                     : res.Content.Headers.Concat(res.Headers))
                     .OrderBy(h => h.Key)

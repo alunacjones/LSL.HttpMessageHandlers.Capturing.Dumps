@@ -19,7 +19,6 @@ public static class DumpCapturingHandlerBuilderExtensions
     /// <returns></returns>
     public static ICapturingHandlerBuilder AddDumpCapturingHandler(this ICapturingHandlerBuilder source, Action<IDumpCapturerBuilder>? configurator = null)
     {
-        configurator ??= o => { };
         var name = source.AssertNotNull(nameof(source)).BuildUniqueName();
         var builder = new DefaultDumpCapturerBuilder(name, source.Services);
 
@@ -36,12 +35,43 @@ public static class DumpCapturingHandlerBuilderExtensions
             .FluentlyTryAddSingleton<DumpCapturerOptionsResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
-            .FluentlyTryAddTransient(sp => ActivatorUtilities.CreateInstance<DefaultHeaderMapper>(sp, Options.DefaultName))
-            .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()))            
-            .AddOptions<DefaultObfuscatorOptions>();
+            .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()));
 
         return source;
     }
+
+    /// <summary>
+    /// Adds a dump capturing handler with default configuration values.
+    /// </summary>
+    /// <remarks>
+    /// <para>The defaults are configured as follows:</para>
+    /// <list type="bullet">
+    ///     <item>
+    ///         Adds the default dump capturer to output to the current user's profile folder under the `.http-output` 
+    ///         folder and under a folder beneath that named after the executing assembly.
+    ///     </item>
+    ///     <item>Adds the default header capturer. It obfuscates the `Authorization` header on output</item>
+    ///     <item>Adds the query parameter obfuscator so that it obfuscates these parameters: apikey, apiKey and api-key.</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="source"></param>
+    /// <param name="configurator"></param>
+    /// <param name="defaultDumpHandlerConfigurator"></param>
+    /// <param name="defaultHeaderMapperConfigurator"></param>
+    /// <param name="queryParameterObfuscatingUriTransformerConfigurator"></param>
+    /// <returns></returns>
+    public static ICapturingHandlerBuilder AddDumpCapturingHandlerWithDefaults(
+        this ICapturingHandlerBuilder source,
+        Action<IDumpCapturerBuilder>? configurator = null,
+        Action<DefaultDumpHandlerOptions>? defaultDumpHandlerConfigurator = null,
+        Action<DefaultHeaderMapperOptions>? defaultHeaderMapperConfigurator = null,
+        Action<QueryParameterObfuscatingUriTransformerOptions>? queryParameterObfuscatingUriTransformerConfigurator = null) => 
+        source
+            .AssertNotNull(nameof(source))
+            .AddDumpCapturingHandler(c => c
+                .AddDefaultDumpHandler(defaultDumpHandlerConfigurator.MakeNullSafe())
+                .AddDefaultHeaderMapper(defaultHeaderMapperConfigurator.MakeNullSafe())
+                .AddQueryParameterObfuscatingUriTransformer(queryParameterObfuscatingUriTransformerConfigurator.MakeNullSafe())
+                .With(configurator.MakeNullSafe())
+            );
 }
-
-
