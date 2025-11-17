@@ -1,4 +1,4 @@
-using System;
+using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -15,5 +15,5 @@ public interface ICaptureContextToDumpDataMapper
     /// <param name="captureContext"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    RequestAndResponseDump Map(CaptureContext captureContext, IResolvedDumpCapturerOptions options);
+    Task<RequestAndResponseDump> Map(CaptureContext captureContext, IResolvedDumpCapturerOptions options);
 }

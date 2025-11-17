@@ -15,6 +15,9 @@ internal class DumpCapturingHandler(
         () => dumpCapturerOptionsResolver.Resolve(optionsSnapshot.Get(name))
     );
 
-    public Task CaptureAsync(CaptureContext context) =>
-        _resolvedDumpCapturerOptions.Value.Handler(captureContextToDumpDataMapper.Map(context, _resolvedDumpCapturerOptions.Value));
+    public async Task CaptureAsync(CaptureContext context) =>
+        await _resolvedDumpCapturerOptions.Value.Handler(
+            await captureContextToDumpDataMapper.Map(context, _resolvedDumpCapturerOptions.Value).ConfigureAwait(false)
+        )
+        .ConfigureAwait(false);
 }

@@ -23,4 +23,9 @@ public interface IResolvedDumpCapturerOptions
     /// The header mapper
     /// </summary>
     Func<IDictionary<string, IEnumerable<string>>, IDictionary<string, IEnumerable<string>>> HeaderMapper { get; }
+
+    /// <summary>
+    /// THe content type based deserialiser
+    /// </summary>
+    IContentTypeBasedDeserialiser ContentTypeDeserialiser { get; }
 }

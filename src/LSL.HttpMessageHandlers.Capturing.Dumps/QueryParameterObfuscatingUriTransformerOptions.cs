@@ -14,7 +14,8 @@ public class QueryParameterObfuscatingUriTransformerOptions : IHaveAnObfuscatorF
     public List<string> ParametersToObfuscate { get; set; } = [
         "apiKey",
         "apikey",
-        "api-key"
+        "api-key",
+        "api_key"
     ];
 
     /// <inheritdoc/>

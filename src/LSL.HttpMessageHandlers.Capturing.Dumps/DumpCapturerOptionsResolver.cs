@@ -34,6 +34,9 @@ internal class DumpCapturerOptionsResolver(ICompoundFactory compoundFactory)
                     }
 
                     return headers;
-                })
+                }),
+            new CompoundContentTypeBasedDeserialiser(compoundFactory
+                .CreateBuilder(dumpCapturingOptions.ContentTypeBasedDeserialiserFactories)
+                .Services)
         );
 }

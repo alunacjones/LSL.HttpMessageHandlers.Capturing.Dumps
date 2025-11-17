@@ -11,7 +11,7 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 public static class IHaveAnObfuscatorFactoryExtensions
 {
     /// <summary>
-    /// Use the default obfuscator with an optional options configurator
+    /// Use the default obfuscator with an options configurator
     /// </summary>
     /// <typeparam name="TOptions"></typeparam>
     /// <param name="source"></param>

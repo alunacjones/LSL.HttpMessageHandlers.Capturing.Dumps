@@ -32,6 +32,7 @@ public static class DumpCapturingHandlerBuilderExtensions
                 sp.GetRequiredService<DumpCapturerOptionsResolver>())
             )
             .Services
+            .FluentlyTryAddSingleton<IHomeFolderProvider, HomeFolderProvider>()
             .FluentlyTryAddSingleton<DumpCapturerOptionsResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
@@ -44,14 +45,14 @@ public static class DumpCapturingHandlerBuilderExtensions
     /// Adds a dump capturing handler with default configuration values.
     /// </summary>
     /// <remarks>
-    /// <para>The defaults are configured as follows:</para>
+    /// <para>The defaults are configured as follows (and can be augmented by any of the optional parameters):</para>
     /// <list type="bullet">
     ///     <item>
     ///         Adds the default dump capturer to output to the current user's profile folder under the `.http-output` 
     ///         folder and under a folder beneath that named after the executing assembly.
     ///     </item>
     ///     <item>Adds the default header capturer. It obfuscates the `Authorization` header on output</item>
-    ///     <item>Adds the query parameter obfuscator so that it obfuscates these parameters: apikey, apiKey and api-key.</item>
+    ///     <item>Adds the query parameter obfuscator so that it obfuscates these parameters: apikey, apiKey, api_key and api-key.</item>
     /// </list>
     /// </remarks>
     /// <param name="source"></param>

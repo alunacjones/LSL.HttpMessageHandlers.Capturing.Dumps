@@ -17,5 +17,5 @@ public class ContentAndHeadersDump
     /// <summary>
     /// The content of thew request or response
     /// </summary>
-    public object Content { get; set; } = default!;    
+    public object? Content { get; set; } = default!;    
 }

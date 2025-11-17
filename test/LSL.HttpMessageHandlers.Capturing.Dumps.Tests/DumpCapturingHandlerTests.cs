@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Diamond.Core.System.TemporaryFolder;
 using FluentAssertions;
@@ -19,27 +20,33 @@ public class DumpCapturingHandlerTests
 {
     [TestCase(false)]
     [TestCase(true)]
-    public async Task WhenCreated_ItShouldDumpTheExpectedData(bool useCustomHeaderMapper)
+    [TestCase(true, "text/plain", "Hello there")]
+    [TestCase(true, "application/other", "Hello there")]
+    public async Task WhenCreated_ItShouldDumpTheExpectedData(bool useCustomHeaderMapper, string requestContentType = null, string requestContent = null)
     {
         // Arrange
         using var tempFolder = new TemporaryFolderFactory().Create();
-
+        
         var capturedUrls = new List<string>();
         var provider = new ServiceCollection()
-            
+            .AddSingleton<IHomeFolderProvider>(sp => new TestHomeFolderProvider(tempFolder.FullPath))       
             .AddMockHttpMessageHandler()
             .Configure<TestOptions>(c =>
             {
-                c.GetUri = "http://nowhere.com/?apikey=my-secret-thingy";
+                c.PostUri = "http://nowhere.com/?apikey=my-secret-thingy&api_key=other-one";
                 c.Headers.AddRange([
                     new("X-Remove", "remove it"),
                     new("X-Other-Remove", "duh"),
-                    new("Authorization", "Bearer my-fully-secret-thingy")
+                    new("Authorization", "Bearer my-fully-secret-thingy")              
                 ]);
+
+                if (requestContentType is not null) c.RequestContentType = requestContentType;
+                if (requestContent is not null) c.RequestContent = requestContent;
             })
             .AddHttpClient<MyTestClient>()            
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
+                    .AddDefaultContentTypeBasedDeserialisers()
                     .ExecuteIf(
                         useCustomHeaderMapper,
                         c => c.AddHeaderMapper<TestHeaderMapper>(),
@@ -51,7 +58,7 @@ public class DumpCapturingHandlerTests
                             }).HeadersToRemove = ["X-Other-Remove"]
                         )
                     )
-                    .AddQueryParameterObfuscatingUriTransformer(c => c.UseDefaultObfuscator(c => c.ObfuscatingSuffix = "..."))
+                    .AddQueryParameterObfuscatingUriTransformer(c => c.UseDefaultObfuscator(c => c.ObfuscatingSuffix = "**"))
                     .AddUriTransformer<TestUriTransformer>()
                     .AddDefaultDumpHandler()
                     .AddDumpHandlerDelegate(dump => capturedUrls.Add(dump.Request.RequestUri.ToString()))
@@ -63,7 +70,7 @@ public class DumpCapturingHandlerTests
         var options = provider.GetRequiredService<IOptions<TestOptions>>();
         var client = provider.GetRequiredService<MyTestClient>();
         var mockHttpMessageHandler = provider.GetMockHttpHandler();
-        mockHttpMessageHandler.When(options.Value.GetUri)
+        mockHttpMessageHandler.When(options.Value.PostUri)
             .Respond(
                 new Dictionary<string, string>
                 {
@@ -88,11 +95,10 @@ public class DumpCapturingHandlerTests
 
         var capturedUrls = new List<string>();
         var provider = new ServiceCollection()
-            
             .AddMockHttpMessageHandler()
             .Configure<TestOptions>(c =>
             {
-                c.GetUri = "http://nowhere.com/?apikey=my-secret-thingy";
+                c.PostUri = "http://nowhere.com/?apikey=my-secret-thingy";
                 c.Headers.AddRange([
                     new("X-Remove", "remove it"),
                     new("X-Other-Remove", "duh"),
@@ -111,7 +117,7 @@ public class DumpCapturingHandlerTests
         var options = provider.GetRequiredService<IOptions<TestOptions>>();
         var client = provider.GetRequiredService<MyTestClient>();
         var mockHttpMessageHandler = provider.GetMockHttpHandler();
-        mockHttpMessageHandler.When(options.Value.GetUri)
+        mockHttpMessageHandler.When(options.Value.PostUri)
             .Respond(
                 new Dictionary<string, string>
                 {
@@ -126,6 +132,26 @@ public class DumpCapturingHandlerTests
         using var assertionScope = new AssertionScope();
         
         capturedUrls.Should().HaveCount(1);        
+    }
+
+    [Test]
+    public void GivenANullUriTransformer_ItShouldThrowAnArgumentNullException()
+    {
+        // Arrange
+        var providerAction =  new Action(() => new ServiceCollection()
+            .Configure<TestOptions>(c =>
+            {
+                c.PostUri = "http://nowhere.com/?apikey=my";
+            })
+            .AddHttpClient<MyTestClient>()
+            .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandler(c => c.AddUriTransformer(null))
+            )
+            .Services
+            .BuildServiceProvider());
+
+        // Act & Assert
+        providerAction.Should().ThrowExactly<ArgumentNullException>();
     }
 
     private class MyTestClient
@@ -143,13 +169,20 @@ public class DumpCapturingHandlerTests
             }            
         }
 
-        public async Task SendRequest() => await _httpClient.GetAsync(_options.Value.GetUri);
+        public async Task SendRequest() => await _httpClient.PostAsync(_options.Value.PostUri, new StringContent(_options.Value.RequestContent, Encoding.UTF8, _options.Value.RequestContentType));
     }
 
     private class TestOptions
     {
         public List<KeyValuePair<string, string>> Headers { get; set; } = [new("X-Test", "Als-secret-type-thing")];
-        public string GetUri { get; set; } = "http://nowhere.com";
+        public string PostUri { get; set; } = "http://nowhere.com";
+        public string RequestContentType = "application/json";
+        public string RequestContent { get; set; } = 
+            """
+            {
+                "Id": "id1"
+            }
+            """;
     }
 
     private class TestUriTransformer : IUriTransformer
@@ -168,5 +201,10 @@ public class DumpCapturingHandlerTests
 
             return originalHeaders;
         }
+    }
+
+    private class TestHomeFolderProvider(string folderPath) : IHomeFolderProvider
+    {
+        public string GetHomeFolder() => folderPath;
     }
 }
