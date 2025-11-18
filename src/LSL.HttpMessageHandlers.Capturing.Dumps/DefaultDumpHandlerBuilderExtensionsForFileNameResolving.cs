@@ -9,6 +9,12 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 /// </summary>
 public static class DefaultDumpHandlerBuilderExtensionsForFileNameResolving
 {
+    /// <summary>
+    /// Use the default filename resolver and optionally override the default options with <paramref name="configurator"/>
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="configurator"></param>
+    /// <returns></returns>
     public static IDefaultDumpHandlerBuilder UseDefaultFilenameResolver(
         this IDefaultDumpHandlerBuilder source,
         Action<DefaultFilenameResolverOptions>? configurator = null)
