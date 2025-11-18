@@ -20,7 +20,7 @@ services.AddHttpClient<MyTestClient>()
 
 // On resolution of MyTestClient, all JSON request and responses 
 // will be dumped into the current user's profile folder under the path
-// .http-output/{executing-assembly-name}.
+// .http-dumps/{executing-assembly-name}.
 // {executing-assembly-name} is resolved using Assembly.GetExecutingAssembly()
 
 ```

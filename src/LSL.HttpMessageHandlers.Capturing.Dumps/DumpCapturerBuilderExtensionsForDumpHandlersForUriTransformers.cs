@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
+/// <summary>
+/// Dump capturer builder extensions for dump handlers for uri transformers
+/// </summary>
 public static class DumpCapturerBuilderExtensionsForDumpHandlersForUriTransformers
 {
     /// <summary>

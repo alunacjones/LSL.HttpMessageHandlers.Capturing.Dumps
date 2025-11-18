@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,16 @@ public static class DumpCapturerBuilderExtensionsForDumpHandlers
     /// <param name="source"></param>
     /// <param name="configurator"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddDefaultDumpHandler(this IDumpCapturerBuilder source, Action<DefaultDumpHandlerOptions>? configurator = null) => 
-        source.AddDumpHandler<DefaultDumpHandler>(name => source.Services.Configure(name, configurator.MakeNullSafe()));
+    public static IDumpCapturerBuilder AddDefaultDumpHandler(this IDumpCapturerBuilder source, Action<IDefaultDumpHandlerBuilder>? configurator = null)
+    {        
+        source.AddDumpHandler<DefaultDumpHandler>(name =>
+        {
+            var builder = new DefaultDumpHandlerBuilder(name, source.Services);
+            configurator?.Invoke(builder);
+        });
+
+        return source;
+    }
 
     /// <summary>
     /// Adds a dump handler factory to the dump capturer

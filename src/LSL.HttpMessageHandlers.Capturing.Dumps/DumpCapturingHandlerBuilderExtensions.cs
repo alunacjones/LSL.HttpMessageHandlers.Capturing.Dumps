@@ -34,8 +34,12 @@ public static class DumpCapturingHandlerBuilderExtensions
             .Services
             .FluentlyTryAddSingleton<IHomeFolderProvider, HomeFolderProvider>()
             .FluentlyTryAddSingleton<DumpCapturerOptionsResolver>()
+            .FluentlyTryAddSingleton<HomeFolderOutputFolderResolver>()
+            .FluentlyTryAddTransient<DelegatingOutputFolderResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
+            .FluentlyTryAddTransient<DelegatingFilenameResolver>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
+            .FluentlyTryAddSingleton<IDirectoryCreator, DirectoryCreator>()
             .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()));
 
         return source;
@@ -48,7 +52,7 @@ public static class DumpCapturingHandlerBuilderExtensions
     /// <para>The defaults are configured as follows (and can be augmented by any of the optional parameters):</para>
     /// <list type="bullet">
     ///     <item>
-    ///         Adds the default dump capturer to output to the current user's profile folder under the `.http-output` 
+    ///         Adds the default dump capturer to output to the current user's profile folder under the `.http-dumps` 
     ///         folder and under a folder beneath that named after the executing assembly.
     ///     </item>
     ///     <item>Adds the default header capturer. It obfuscates the `Authorization` header on output</item>
@@ -64,7 +68,7 @@ public static class DumpCapturingHandlerBuilderExtensions
     public static ICapturingHandlerBuilder AddDumpCapturingHandlerWithDefaults(
         this ICapturingHandlerBuilder source,
         Action<IDumpCapturerBuilder>? configurator = null,
-        Action<DefaultDumpHandlerOptions>? defaultDumpHandlerConfigurator = null,
+        Action<IDefaultDumpHandlerBuilder>? defaultDumpHandlerConfigurator = null,
         Action<DefaultHeaderMapperOptions>? defaultHeaderMapperConfigurator = null,
         Action<QueryParameterObfuscatingUriTransformerOptions>? queryParameterObfuscatingUriTransformerConfigurator = null) => 
         source
