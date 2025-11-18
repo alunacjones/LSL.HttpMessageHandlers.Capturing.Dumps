@@ -25,35 +25,43 @@ public class DumpCapturingHandlerTests
         true, 
         "text/plain", 
         "Hello there\r\nAnd there's more!")]
-    [TestCase(true,
+    [TestCase(
+        true,
         "text/html",
         "<html><head></head><body><i></i></body></html>")]
-    [TestCase(true,
+    [TestCase(
+        true,
         "application/other",
         "Hello there")]
-    [TestCase(true, "application/other", "Hello there", 
+    [TestCase(
+        true, "application/other", "Hello there", 
         ResolutionOptions.Custom)]
-    [TestCase(true,
+    [TestCase(
+        true,
         "application/other",
         "Hello there",
         ResolutionOptions.Delegate)]
-    [TestCase(true,
+    [TestCase(
+        true,
         "application/other",
         "Hello there",
         ResolutionOptions.Delegate, 
         ResolutionOptions.Custom)]
-    [TestCase(true,
+    [TestCase(
+        true,
         "application/other",
         "Hello there",        
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate)]
-    [TestCase(true, 
+    [TestCase(
+        true, 
         "application/other", 
         "Hello there", 
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate, 
         DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
-    [TestCase(true, 
+    [TestCase(
+        true, 
         "application/other", 
         "Hello there", 
         ResolutionOptions.Delegate, 
@@ -92,6 +100,7 @@ public class DumpCapturingHandlerTests
             })
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandlerWithDefaults(c => c.AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c
                     .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
             .AddRequestAndResponseCapturing(c => c
