@@ -13,6 +13,8 @@ public class TextDeserialiser : IContentTypeBasedDeserialiser
     /// <inheritdoc/>
     public async Task<JsonNode?> Deserialise(HttpContent httpContent) => 
         httpContent.Headers.ContentType.MediaType.StartsWith("text/")
-            ? JsonValue.Create((await httpContent.ReadAsStringAsync()).Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries))
+            ? JsonValue.Create((await httpContent.ReadAsStringAsync())
+                .Replace("\r", string.Empty)
+                .Split(Constants.PathCharacterArray, StringSplitOptions.RemoveEmptyEntries))
             : null;
 }
