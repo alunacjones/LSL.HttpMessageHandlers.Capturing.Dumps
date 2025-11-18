@@ -6,17 +6,32 @@ using System.Text.RegularExpressions;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
-internal static class StringExtensions
+/// <summary>
+/// StringExtensions
+/// </summary>
+public static class StringExtensions
 {
+    /// <summary>
+    /// Returns a substring even if the length is greater than the string size.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///     <item>Returns the full string is <paramref name="length"/> is greater or equal to the length of <paramref name="value"/></item>
+    ///     <item>Returns <see langword="null"/> if <paramref name="value"/> is <see langword="null"/></item>
+    /// </list>
+    /// </remarks>
+    /// <param name="value"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
     [return: NotNullIfNotNull(nameof(value))]
     public static string? SafeSubstring(this string? value, int length) => value?.Substring(0,  Math.Min(value.Length, length));
 
+    /// <summary>
+    /// Makes a string safe for use as a filename.
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
     public static string MakeFilenameSafe(this string source) => _safeFileNameRegex.Value.Replace(source, "_");
-
-    public static string ReplaceVariables(this string source, RequestAndResponseDump requestAndResponseDump)
-    {
-        return source.Replace("{host}", requestAndResponseDump.Request.RequestUri.Host.MakeFilenameSafe());
-    }
 
     private static readonly Lazy<Regex> _safeFileNameRegex = new(() =>
     {

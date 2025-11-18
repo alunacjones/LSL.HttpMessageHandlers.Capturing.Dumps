@@ -33,7 +33,7 @@ public static class DumpCapturerBuilderExtensionsForHeaderMapping
     public static IDumpCapturerBuilder AddDefaultHeaderMapper(this IDumpCapturerBuilder source, Action<DefaultHeaderMapperOptions>? configurator = null)
     {
         var name = OptionsHelper.BuildUniqueName(source.Name);
-        source.Services.Configure<DefaultHeaderMapperOptions>(name, c => configurator?.Invoke(c));
+        source.Services.Configure(name, configurator.MakeNullSafe());
         return source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DefaultHeaderMapper>(sp, name));
     }
 

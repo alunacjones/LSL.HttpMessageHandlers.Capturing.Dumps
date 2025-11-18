@@ -22,7 +22,7 @@ public static class DumpCapturingHandlerBuilderExtensions
         var name = source.AssertNotNull(nameof(source)).BuildUniqueName();
         var builder = new DefaultDumpCapturerBuilder(name, source.Services);
 
-        configurator?.Invoke(builder);
+        configurator.SafeInvoke(builder);
 
         source
             .AddCapturingHandlerFactory(sp => new DumpCapturingHandler(

@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using AngleSharp.Html;
-using AngleSharp.Html.Parser;
 using Diamond.Core.System.TemporaryFolder;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -24,21 +19,55 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps.Tests;
 
 public class DumpCapturingHandlerTests
 {
-    // [TestCase(false)]
-    // [TestCase(true)]
-    // [TestCase(true, "text/plain", "Hello there\r\nAnd there's more!")]
-    [TestCase(true, "text/html", "<html><head></head><body><i></i></body></html>")]
-    // [TestCase(true, "application/other", "Hello there")]
-    // [TestCase(true, "application/other", "Hello there", ResolutionOptions.Custom)]
-    // [TestCase(true, "application/other", "Hello there", ResolutionOptions.Delegate)]
-    // [TestCase(true, "application/other", "Hello there", ResolutionOptions.Delegate, ResolutionOptions.Custom)]
-    // [TestCase(true, "application/other", "Hello there", ResolutionOptions.Delegate, ResolutionOptions.Delegate)]
+    [TestCase(false)]
+    [TestCase(true)]
+    [TestCase(
+        true, 
+        "text/plain", 
+        "Hello there\r\nAnd there's more!")]
+    [TestCase(true,
+        "text/html",
+        "<html><head></head><body><i></i></body></html>")]
+    [TestCase(true,
+        "application/other",
+        "Hello there")]
+    [TestCase(true, "application/other", "Hello there", 
+        ResolutionOptions.Custom)]
+    [TestCase(true,
+        "application/other",
+        "Hello there",
+        ResolutionOptions.Delegate)]
+    [TestCase(true,
+        "application/other",
+        "Hello there",
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Custom)]
+    [TestCase(true,
+        "application/other",
+        "Hello there",        
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate)]
+    [TestCase(true, 
+        "application/other", 
+        "Hello there", 
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate, 
+        DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
+    [TestCase(true, 
+        "application/other", 
+        "Hello there", 
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate, 
+        DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser, 
+        TestHttpMethod.Get)]
     public async Task WhenCreated_ItShouldDumpTheExpectedData(
         bool useCustomHeaderMapper,
         string requestContentType = null,
         string requestContent = null,
         ResolutionOptions outputFolderResolution = ResolutionOptions.Default,
-        ResolutionOptions filenameResolution = ResolutionOptions.Default)
+        ResolutionOptions filenameResolution = ResolutionOptions.Default,
+        DefaultContentTypeBasedDeserialisersExclusions deserialisersExclusions = DefaultContentTypeBasedDeserialisersExclusions.None,
+        TestHttpMethod requestMethod = TestHttpMethod.Post)
     {
         // Arrange
         using var tempFolder = new TemporaryFolderFactory().Create();
@@ -50,7 +79,7 @@ public class DumpCapturingHandlerTests
             .AddMockHttpMessageHandler()
             .Configure<TestOptions>(c =>
             {
-                c.PostUri = "http://nowhere.com/?apikey=my-secret-thingy&api_key=other-one";
+                c.Uri = "http://nowhere.com/?apikey=my-secret-thingy&api_key=other-one";
                 c.Headers.AddRange([
                     new("X-Remove", "remove it"),
                     new("X-Other-Remove", "duh"),
@@ -59,12 +88,16 @@ public class DumpCapturingHandlerTests
 
                 if (requestContentType is not null) c.RequestContentType = requestContentType;
                 if (requestContent is not null) c.RequestContent = requestContent;
+                c.Method = requestMethod == TestHttpMethod.Get ? HttpMethod.Get : HttpMethod.Post;
             })
-            .AddHttpClient<MyTestClient>()            
+            .AddHttpClient<MyTestClient>()
+            .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandler(c => c
+                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>()
-                    .AddDefaultContentTypeBasedDeserialisers()
+                    .AddDefaultContentTypeBasedDeserialisers(deserialisersExclusions)
                     .ExecuteIf(                        
                         useCustomHeaderMapper,
                         c => c.AddHeaderMapper<TestHeaderMapper>(),
@@ -92,11 +125,11 @@ public class DumpCapturingHandlerTests
             )
             .Services
             .BuildServiceProvider();
-
+        
         var options = provider.GetRequiredService<IOptions<TestOptions>>();
         var client = provider.GetRequiredService<MyTestClient>();
         var mockHttpMessageHandler = provider.GetMockHttpHandler();
-        mockHttpMessageHandler.When(options.Value.PostUri)
+        mockHttpMessageHandler.When(options.Value.Uri)
             .Respond(
                 new Dictionary<string, string>
                 {
@@ -124,7 +157,7 @@ public class DumpCapturingHandlerTests
             .AddMockHttpMessageHandler()
             .Configure<TestOptions>(c =>
             {
-                c.PostUri = "http://nowhere.com/?apikey=my-secret-thingy";
+                c.Uri = "http://nowhere.com/?apikey=my-secret-thingy";
                 c.Headers.AddRange([
                     new("X-Remove", "remove it"),
                     new("X-Other-Remove", "duh"),
@@ -143,7 +176,7 @@ public class DumpCapturingHandlerTests
         var options = provider.GetRequiredService<IOptions<TestOptions>>();
         var client = provider.GetRequiredService<MyTestClient>();
         var mockHttpMessageHandler = provider.GetMockHttpHandler();
-        mockHttpMessageHandler.When(options.Value.PostUri)
+        mockHttpMessageHandler.When(options.Value.Uri)
             .Respond(
                 new Dictionary<string, string>
                 {
@@ -168,7 +201,7 @@ public class DumpCapturingHandlerTests
         var providerAction =  new Action(() => new ServiceCollection()
             .Configure<TestOptions>(c =>
             {
-                c.PostUri = "http://nowhere.com/?apikey=my";
+                c.Uri = "http://nowhere.com/?apikey=my";
             })
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
@@ -179,86 +212,5 @@ public class DumpCapturingHandlerTests
 
         // Act & Assert
         providerAction.Should().ThrowExactly<ArgumentNullException>();
-    }
-
-    private class MyTestClient
-    {
-        private readonly HttpClient _httpClient;
-        private readonly IOptions<TestOptions> _options;
-
-        public MyTestClient(HttpClient httpClient, IOptions<TestOptions> options)
-        {
-            _httpClient = httpClient;
-            _options = options;
-            foreach (var header in options.Value.Headers)
-            {
-                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);   
-            }            
-        }
-
-        public async Task SendRequest() => await _httpClient.PostAsync(_options.Value.PostUri, new StringContent(_options.Value.RequestContent, Encoding.UTF8, _options.Value.RequestContentType));
-    }
-
-    private class TestOptions
-    {
-        public List<KeyValuePair<string, string>> Headers { get; set; } = [new("X-Test", "Als-secret-type-thing")];
-        public string PostUri { get; set; } = "http://nowhere.com";
-        public string RequestContentType = "application/json";
-        public string RequestContent { get; set; } = 
-            """
-            {
-                "Id": "id1"
-            }
-            """;
-    }
-
-    private class TestUriTransformer : IUriTransformer
-    {
-        public UriBuilder Transform(UriBuilder source) => source.ConfigureWith(c => c.Path = "transformed-path");
-    }
-
-    private class TestHeaderMapper : IHeaderMapper
-    {
-        public IDictionary<string, IEnumerable<string>> MapHeaders(IDictionary<string, IEnumerable<string>> originalHeaders)
-        {
-            if (originalHeaders.ContainsKey("X-Remove"))
-            {
-                originalHeaders.Remove("X-Remove");
-            }
-
-            return originalHeaders;
-        }
-    }
-
-    private class TestHomeFolderProvider(string folderPath) : IHomeFolderProvider
-    {
-        public string GetHomeFolder() => folderPath;
-    }
-
-    private class TestOutputFolderResolver : IOutputFolderResolver
-    {
-        public string ResolveOutputFolder(RequestAndResponseDump requestAndResponseDump) => "custom";
-    }
-
-    private class TestFilenameResolver : IFilenameResolver
-    {
-        public string ResolveFilenameWithNoExtension(RequestAndResponseDump requestAndResponseDump) => $"{Guid.NewGuid()}-{Guid.NewGuid()}";
-    }
-
-    private class HtmlDeserialiser : IContentTypeBasedDeserialiser
-    {
-        public async Task<JsonNode> Deserialise(HttpContent httpContent)
-        {
-            if (httpContent.Headers.ContentType.MediaType is not "text/html") return null;
-
-            var parser = new HtmlParser();
-            var stringContent = await httpContent.ReadAsStringAsync();
-            var document = await parser.ParseDocumentAsync(stringContent);
-
-            using var sw = new StringWriter();
-            document.ToHtml(sw, new PrettyMarkupFormatter());
-
-            return JsonValue.Create(sw.ToString().Split(['\n'], StringSplitOptions.None ).Select(line => line.Replace("\t", "  ")));
-        }
     }
 }

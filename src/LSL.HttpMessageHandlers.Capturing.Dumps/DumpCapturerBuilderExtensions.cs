@@ -22,7 +22,7 @@ public static class DumpCapturerBuilderExtensionsForDumpHandlers
         source.AddDumpHandler<DefaultDumpHandler>(name =>
         {
             var builder = new DefaultDumpHandlerBuilder(name, source.Services);
-            configurator?.Invoke(builder);
+            configurator.SafeInvoke(builder);
         });
 
         return source;
@@ -42,7 +42,7 @@ public static class DumpCapturerBuilderExtensionsForDumpHandlers
     {
         var name = OptionsHelper.BuildUniqueName(source.Name);
         source.Services.Configure<DumpCapturingOptions>(source.Name, c => c.DumpHandlerFactories.Add(sp => factory(sp).With(d => d.Name = name)));
-        withNameAction?.Invoke(name);
+        withNameAction.SafeInvoke(name);
         return source;
     }
 
