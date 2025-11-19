@@ -33,4 +33,4 @@ services.AddHttpClient<MyTestClient>()
 
 ## The `defaultDumpHandlerConfigurator` parameter
 
-This action will configure the `DefaultDumpHandler`'s options which allows for configuration of output folders and file formats.
+This action will configure the `DefaultDumpHandler`'s options which allows for configuration of output folders and file name providers.
