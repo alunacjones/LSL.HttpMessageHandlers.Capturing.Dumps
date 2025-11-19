@@ -31,9 +31,9 @@ public static class StringExtensions
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static string MakeFilenameSafe(this string source) => _safeFileNameRegex.Value.Replace(source, "_");
+    public static string MakeFilenameSafe(this string source) => _safeFilenameRegex.Value.Replace(source, "_");
 
-    private static readonly Lazy<Regex> _safeFileNameRegex = new(() =>
+    private static readonly Lazy<Regex> _safeFilenameRegex = new(() =>
     {
         var regexString = string.Join("|", Path.GetInvalidFileNameChars()
             .Select(c => Regex.Escape(c.ToString())));

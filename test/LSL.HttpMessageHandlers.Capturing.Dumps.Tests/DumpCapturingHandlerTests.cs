@@ -100,7 +100,7 @@ public class DumpCapturingHandlerTests
             })
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
-                .AddDumpCapturingHandlerWithDefaults(c => c.AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
+                .AddDumpCapturingHandlerWithDefaults(configurator: c => c.AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c
                     .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
             .AddRequestAndResponseCapturing(c => c

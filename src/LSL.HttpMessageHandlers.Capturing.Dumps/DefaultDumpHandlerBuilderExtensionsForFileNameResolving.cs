@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
 /// <summary>
-/// DefaultDumpHandlerBuilderExtensionsForFileNameResolving
+/// DefaultDumpHandlerBuilderExtensionsForFilenameResolving
 /// </summary>
-public static class DefaultDumpHandlerBuilderExtensionsForFileNameResolving
+public static class DefaultDumpHandlerBuilderExtensionsForFilenameResolving
 {
     /// <summary>
     /// Use the default filename resolver and optionally override the default options with <paramref name="configurator"/>

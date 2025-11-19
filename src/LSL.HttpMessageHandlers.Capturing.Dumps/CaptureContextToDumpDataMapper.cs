@@ -27,6 +27,7 @@ internal class CaptureContextToDumpDataMapper : ICaptureContextToDumpDataMapper
         await captureContext.WithRequestAndResponseAsync(async (_, res) =>
             result.Response = new()
             {
+                StatusCode = (int)res.StatusCode,
                 Content = await options.ContentTypeDeserialiser.Deserialise(res.Content).ConfigureAwait(false),
                 Headers = options.HeaderMapper((res.Content.Headers is null
                     ? res.Headers

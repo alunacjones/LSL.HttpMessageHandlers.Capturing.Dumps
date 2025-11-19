@@ -4,7 +4,7 @@
 
 # LSL.HttpMessageHandlers.Capturing.Dumps
 
-Thi library provides quick and easy request and response dumping based on the [LSL.HttpMessageHandlers.Capturing.Core](https://www.nuget.org/packages/LSL.HttpMessageHandlers.Capturing.Core) library.
+This library provides quick and easy request and response dumping based on the [LSL.HttpMessageHandlers.Capturing.Core](https://www.nuget.org/packages/LSL.HttpMessageHandlers.Capturing.Core) library.
 
 ## Quick Start
 
@@ -18,12 +18,19 @@ services.AddHttpClient<MyTestClient>()
         .AddDumpCapturingHandlerWithDefaults()
     );
 
-// On resolution of MyTestClient, all JSON request and responses 
+// On resolution of MyTestClient, all request and responses 
 // will be dumped into the current user's profile folder under the path
 // .http-dumps/{executing-assembly-name}.
-// {executing-assembly-name} is resolved using Assembly.GetExecutingAssembly()
+// {executing-assembly-name} is resolved using Assembly.GetEntryAssembly().GetName().Name
 
 ```
+
+The defaults are configured as follows (and can be augmented by any of the optional parameters for `AddDumpCapturingHandlerWithDefaults`):
+
+* Adds the default dump capturer to output to the current user's profile folder under the `.http-dumps` folder and under a folder beneath that named after the executing assembly.
+* Adds the default header capturer. It obfuscates the `Authorization` header on output
+* Adds the query parameter obfuscator so that it obfuscates these parameters: `apikey`, `apiKey`, `api_key` and `api-key`.
+
 <!-- HIDE -->
 ## Further Documentation
 
