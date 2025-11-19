@@ -10,5 +10,5 @@ public class HomeFolderOutputFolderResolverOptions
     /// <summary>
     /// The sub folder under <c>{homeFolder}/.http-dumps</c> to store dumped requests and responses
     /// </summary>
-    public string SubFolder { get; set; } = Assembly.GetEntryAssembly().GetName().Name;
+public string SubFolder { get; set; } = Assembly.GetEntryAssembly().GetName().Name.MakeFilenameSafe();
 }
