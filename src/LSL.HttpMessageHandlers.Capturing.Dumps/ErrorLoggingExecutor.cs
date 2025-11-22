@@ -1,13 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
 /// <summary>
 /// Error logging executor
 /// </summary>
-public class ErrorLoggingExecutor
+public class ErrorLoggingExecutor(IOptionsSnapshot<ErrorLoggingExecutorOptions> options)
 {
+    private Lazy<ErrorLoggingExecutorOptions> _options = new(() => options.Value);
+
     /// <summary>
     /// Execute <paramref name="toExecute"/> and handle any exceptions with <paramref name="errorHandler"/>
     /// </summary>
@@ -20,9 +23,10 @@ public class ErrorLoggingExecutor
         {
             await toExecute().ConfigureAwait(false);
         }
-        catch  (Exception ex)
+        catch (Exception ex)
         {
             errorHandler(ex);
+            if (_options.Value.ReThrowException) throw;
         }
     }
 
@@ -39,9 +43,10 @@ public class ErrorLoggingExecutor
         {
             return await toExecute().ConfigureAwait(false);
         }
-        catch  (Exception ex)
+        catch (Exception ex)
         {
             errorHandler(ex);
+            if (_options.Value.ReThrowException) throw;
             return defaultValue;
         }
     }
@@ -58,9 +63,10 @@ public class ErrorLoggingExecutor
         {
             toExecute();
         }
-        catch  (Exception ex)
+        catch (Exception ex)
         {
             errorHandler(ex);
+            if (_options.Value.ReThrowException) throw;
         }        
     }
 
@@ -80,6 +86,7 @@ public class ErrorLoggingExecutor
         catch (Exception ex)
         {
             errorHandler(ex);
+            if (_options.Value.ReThrowException) throw;
             return defaultValue;
         }
     }

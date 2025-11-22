@@ -98,6 +98,7 @@ public class DumpCapturingHandlerTests
                 if (requestContent is not null) c.RequestContent = requestContent;
                 c.Method = requestMethod == TestHttpMethod.Get ? HttpMethod.Get : HttpMethod.Post;
             })
+            .ConfigureDumpHandlerErrorLogging(o => o.ReThrowException = false)
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandlerWithDefaults(configurator: c => c
