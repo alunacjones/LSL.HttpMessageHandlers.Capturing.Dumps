@@ -15,6 +15,6 @@ public class TextDeserialiser : IContentTypeBasedDeserialiser
         httpContent.Headers.ContentType.MediaType.StartsWith("text/")
             ? JsonValue.Create((await httpContent.ReadAsStringAsync())
                 .Replace("\r", string.Empty)
-                .Split(Constants.PathCharacterArray, StringSplitOptions.RemoveEmptyEntries))
+                .Split(['\n'], StringSplitOptions.RemoveEmptyEntries))
             : null;
 }

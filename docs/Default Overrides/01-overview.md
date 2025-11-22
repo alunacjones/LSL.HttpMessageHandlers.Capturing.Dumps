@@ -33,4 +33,9 @@ services.AddHttpClient<MyTestClient>()
 
 ## The `defaultDumpHandlerConfigurator` parameter
 
-This action will configure the `DefaultDumpHandler`'s options which allows for configuration of output folders and file name providers.
+This action will configure the `DefaultDumpHandler`'s options which allows for configuration of output folders, file name providers
+and the `JsonSerializerOptions` that are used to output the `JSON` request and response dump to a file.
+
+## The `defaultHeaderMapperConfigurator` parameter
+
+This action will configure the default header mapper's options. 

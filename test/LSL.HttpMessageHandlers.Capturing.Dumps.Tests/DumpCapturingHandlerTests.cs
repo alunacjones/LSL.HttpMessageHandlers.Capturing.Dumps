@@ -55,19 +55,23 @@ public class DumpCapturingHandlerTests
         ResolutionOptions.Delegate)]
     [TestCase(
         true, 
-        "application/other", 
-        "Hello there", 
+        "text/other", 
+        "Hello there\r\nother\nstuff", 
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate, 
         DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
     [TestCase(
         true, 
         "application/other", 
-        "Hello there", 
+        "Hello there\r\nother\nstuff", 
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate, 
         DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser, 
         TestHttpMethod.Get)]
+    [TestCase(
+        true, 
+        "text/other", 
+        "Hello there\r\nother\nstuff")]    
     public async Task WhenCreated_ItShouldDumpTheExpectedData(
         bool useCustomHeaderMapper,
         string requestContentType = null,
@@ -105,7 +109,11 @@ public class DumpCapturingHandlerTests
                     .AddContentTypeBasedDeserialiser<ErrorThrowingContentTypeDeserialiser>()
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c
-                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
+                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler")))
+                .AddDumpCapturingHandler(c => c
+                    .AddDefaultContentTypeBasedDeserialisers()
+                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "third-handler")))                    
+            )
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>()

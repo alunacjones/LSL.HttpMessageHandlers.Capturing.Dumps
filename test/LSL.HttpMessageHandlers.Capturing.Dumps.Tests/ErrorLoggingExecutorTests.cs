@@ -124,7 +124,7 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         await BuildSut()
-            .ExecuteAsyncWithErrorHandling(async () => wasExecuted = true, e => capturedException = e);
+            .ExecuteAsyncWithErrorHandling(() => { wasExecuted = true; return Task.CompletedTask; }, e => capturedException = e);
 
         wasExecuted.Should().BeTrue();
         capturedException.Should().BeNull();
@@ -137,7 +137,7 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         await BuildSut()
-            .ExecuteAsyncWithErrorHandling(async () => 
+            .ExecuteAsyncWithErrorHandling(() => 
             { 
                 wasExecuted = true;
                 throw new InvalidOperationException();
@@ -155,7 +155,7 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         var toRun = async() => await BuildSut(true)
-            .ExecuteAsyncWithErrorHandling(async () => 
+            .ExecuteAsyncWithErrorHandling(() => 
             { 
                 wasExecuted = true;
                 throw new InvalidOperationException();
@@ -174,7 +174,7 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         var result = await BuildSut()
-            .ExecuteAsyncWithErrorHandling(async () => 
+            .ExecuteAsyncWithErrorHandling(() => 
             { 
                 wasExecuted = true;
                 throw new InvalidOperationException();
@@ -194,7 +194,7 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         var toRun = async () => await BuildSut(true)
-            .ExecuteAsyncWithErrorHandling(async () => 
+            .ExecuteAsyncWithErrorHandling(() => 
             { 
                 wasExecuted = true;
                 throw new InvalidOperationException();
@@ -215,10 +215,10 @@ public class ErrorLoggingExecutorTests
         Exception capturedException = null;
 
         var result = await BuildSut()
-            .ExecuteAsyncWithErrorHandling(async () => 
+            .ExecuteAsyncWithErrorHandling(() => 
             { 
                 wasExecuted = true;
-                return 23;
+                return Task.FromResult(23);
             }, 
             e => capturedException = e,
             12);

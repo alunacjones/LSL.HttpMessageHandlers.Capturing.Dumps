@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
@@ -24,5 +25,5 @@ public class DefaultObfuscatorOptions
     public string ObfuscatingSuffix { get; set; } = "*****";
 
     /// <inheritdoc/>
-    internal ServiceProviderBasedFactory<IObfuscator> ObfuscatorFactory { get; set; } = sp => sp.GetRequiredService<DefaultObfuscator>();
+    internal ServiceProviderBasedFactory<IObfuscator> ObfuscatorFactory { get; set; } = sp => ActivatorUtilities.CreateInstance<DefaultObfuscator>(sp, Options.DefaultName);
 }
