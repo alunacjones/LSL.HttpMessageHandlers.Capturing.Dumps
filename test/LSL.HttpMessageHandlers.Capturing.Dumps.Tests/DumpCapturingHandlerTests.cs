@@ -12,6 +12,7 @@ using LSL.ExecuteIf;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using LSL.HttpMessageHandlers.Capturing.Dumps.Tests.TestHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using RichardSzalay.MockHttp;
 
@@ -55,19 +56,23 @@ public class DumpCapturingHandlerTests
         ResolutionOptions.Delegate)]
     [TestCase(
         true, 
-        "application/other", 
-        "Hello there", 
+        "text/other", 
+        "Hello there\r\nother\nstuff", 
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate, 
         DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
     [TestCase(
         true, 
         "application/other", 
-        "Hello there", 
+        "Hello there\r\nother\nstuff", 
         ResolutionOptions.Delegate, 
         ResolutionOptions.Delegate, 
         DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser, 
         TestHttpMethod.Get)]
+    [TestCase(
+        true, 
+        "text/other", 
+        "Hello there\r\nother\nstuff")]    
     public async Task WhenCreated_ItShouldDumpTheExpectedData(
         bool useCustomHeaderMapper,
         string requestContentType = null,
@@ -98,14 +103,22 @@ public class DumpCapturingHandlerTests
                 if (requestContent is not null) c.RequestContent = requestContent;
                 c.Method = requestMethod == TestHttpMethod.Get ? HttpMethod.Get : HttpMethod.Post;
             })
+            .ConfigureDumpHandlerErrorLogging(o => o.ReThrowException = false)
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
-                .AddDumpCapturingHandlerWithDefaults(configurator: c => c.AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
+                .AddDumpCapturingHandlerWithDefaults(configurator: c => c
+                    .AddContentTypeBasedDeserialiser<ErrorThrowingContentTypeDeserialiser>()
+                    .AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c
-                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
+                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler")))
+                .AddDumpCapturingHandler(c => c
+                    .AddDefaultContentTypeBasedDeserialisers()
+                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "third-handler")))                    
+            )
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>()
+                    .AddDumpHandler<ErrorThrowingDumpHandler>()
                     .AddDefaultContentTypeBasedDeserialisers(deserialisersExclusions)
                     .ExecuteIf(                        
                         useCustomHeaderMapper,
@@ -118,8 +131,10 @@ public class DumpCapturingHandlerTests
                             }).HeadersToRemove = ["X-Other-Remove"]
                         )
                     )
+                    .AddHeaderMapper<ErrorThrowingHeaderMapper>()                    
                     .AddQueryParameterObfuscatingUriTransformer(c => c.UseDefaultObfuscator(c => c.ObfuscatingSuffix = "**"))
                     .AddUriTransformer<TestUriTransformer>()
+                    .AddUriTransformer<ErrorThrowingUriTransformer>()
                     .AddDefaultDumpHandler(c => c
                         .ExecuteIf(outputFolderResolution == ResolutionOptions.Default, c => c.UseHomeFolderForOutput(c => c.SubFolder = "test-output/{host}"))
                         .ExecuteIf(outputFolderResolution == ResolutionOptions.Delegate, c => c.UseOutputFolderResolverDelegate(_ => "test-output2"))
@@ -200,6 +215,29 @@ public class DumpCapturingHandlerTests
         using var assertionScope = new AssertionScope();
         
         capturedUrls.Should().HaveCount(1);        
+    }
+
+    [Test]
+    public async Task GivenAnErroringClient_ItShouldProvideAnException()
+    {
+        ExceptionDump e = null;
+        var provider = new ServiceCollection()
+            .AddHttpClient<MyTestClient>()
+            .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandler(c => c
+                    .AddDumpHandlerDelegate(d => e = d.Exception))
+            )
+            .Services
+            .AddMockHttpMessageHandler()
+            .BuildServiceProvider();
+
+        var client = provider.GetRequiredService<MyTestClient>();
+
+        var toRun = client.SendRequest;
+        
+        await toRun.Should().ThrowExactlyAsync<ArgumentException>();
+
+        e.Should().NotBeNull();
     }
 
     [Test]

@@ -20,3 +20,20 @@ document$.subscribe(() =>
             pre.insertBefore(tryItLink, pre.firstChild);
         });
 });
+
+function setHeaderTop(value) {
+    var mine = Array.from(document.styleSheets).filter(h => h.href?.endsWith("/tryIt.css"))[0]
+    Array.from(mine.cssRules).filter(r => r.selectorText === ".md-header")[0].style.top = value;
+}
+document$.subscribe(() => {
+    const banner = document.querySelector("[data-info-banner]");//
+    banner.addEventListener("click", () => {
+        localStorage.setItem("docs-info-banner", "no-show");
+        setHeaderTop("0px");
+        banner.style.display = "none";
+    })
+    if (localStorage.getItem("docs-info-banner")) return;
+
+    setHeaderTop("50px");
+    banner.style.display = "block";
+})

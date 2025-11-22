@@ -47,3 +47,54 @@
   mask-size:contain;
   width:1.125em
 }
+
+.banner {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 0.2em;
+  background-color: #FFCE1B;
+  text-align: center;
+  height: 50px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.play-button {
+  background-color:currentcolor;
+  background-image: var(--md-try-it-out-icon);
+  display: inline list-item;
+  content:" ";
+  height:1.125em;
+  margin:0 0;
+  -webkit-mask-image:var(--md-try-it-out-icon);
+  mask-image:var(--md-try-it-out-icon);
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-size:contain;
+  mask-size:contain; 
+  width:1.125em;
+}
+
+.banner-dismiss {
+  content: " "
+}
+
+.md-header {
+  top: 0px;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center; 
+}
+
+.banner-content .banner-info {
+  flex-grow: 1;
+}
+
+.banner-content .md-button {
+  margin-right: 0.5em;
+}

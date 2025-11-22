@@ -1,5 +1,3 @@
-using System;
-
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 
 /// <summary>
@@ -25,5 +23,5 @@ public class RequestAndResponseDump
     /// <summary>
     /// If an exception is thrown on send, then this contains the exception
     /// </summary>
-    public Exception? Exception { get; set; }
+    public ExceptionDump? Exception { get; set; }
 }

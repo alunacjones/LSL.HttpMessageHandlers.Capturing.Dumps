@@ -14,6 +14,20 @@ public static class DumpCapturingHandlerBuilderExtensions
     /// <summary>
     /// Adds the default dump capturer
     /// </summary>
+    /// <remarks>
+    /// <para>
+    ///     The empty configuration results in no content deserialisation handlers which results in
+    ///     <see langword="null"/> being recorded as the content. This allows for a developer to explicitly
+    ///     add only the required content type handlers they need
+    /// </para>
+    /// <para>
+    ///     It is advised to use the <c>AddDumpCapturingHandlerWithDefaults</c> and use its 
+    ///     options to further configure the default setup.
+    /// </para>
+    /// <para>
+    ///     Alternatively you may call <c>AddDefaultContentTypeBasedDeserialisers</c> in your <paramref name="configurator"/>
+    /// </para>
+    /// </remarks>
     /// <param name="source"></param>
     /// <param name="configurator"></param>
     /// <returns></returns>
@@ -38,6 +52,7 @@ public static class DumpCapturingHandlerBuilderExtensions
             .FluentlyTryAddTransient<DelegatingOutputFolderResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
             .FluentlyTryAddTransient<DelegatingFilenameResolver>()
+            .FluentlyTryAddSingleton<ErrorLoggingExecutor>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
             .FluentlyTryAddSingleton<IDirectoryCreator, DirectoryCreator>()
             .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()));
@@ -74,7 +89,7 @@ public static class DumpCapturingHandlerBuilderExtensions
         source
             .AssertNotNull(nameof(source))
             .AddDumpCapturingHandler(c => c
-                .With(b => configurator.SafeInvoke(b))
+                .With(configurator.MakeNullSafe())
                 .AddDefaultDumpHandler(defaultDumpHandlerConfigurator.MakeNullSafe())
                 .AddDefaultHeaderMapper(defaultHeaderMapperConfigurator.MakeNullSafe())
                 .AddDefaultContentTypeBasedDeserialisers()

@@ -28,38 +28,19 @@ internal class DefaultDumpHandler : BaseDumpHandler
         _filenameResolver = new(() => compoundFactory.CreateBuilder([_options.Value.FilenameResolverFactory]).Services.Single());
     }
 
-    public override Task Dump(RequestAndResponseDump requestAndResponseDump)
+    public override async Task Dump(RequestAndResponseDump requestAndResponseDump)
     {
-        // TODO
         var resolvedFolder = Path.GetFullPath(_outputFolderResolver.Value.ResolveOutputFolder(requestAndResponseDump));
         var outputFolder = _directoryCreator.CreateDirectory(resolvedFolder);
         
         var options = _options.Value;
 
-        var toOutput = JsonSerializer.Serialize(requestAndResponseDump, options.JsonSerializerOptions);
-        File.WriteAllText(Path.Combine(
+        var outputFile = Path.Combine(
             outputFolder, 
-            $"{_filenameResolver.Value.ResolveFilenameWithNoExtension(requestAndResponseDump)}.json"), 
-            toOutput);
-        
-        return Task.CompletedTask;
+            $"{_filenameResolver.Value.ResolveFilenameWithNoExtension(requestAndResponseDump)}.json");
+       
+        using var stream = File.Open(outputFile, FileMode.Create, FileAccess.Write);
+        await JsonSerializer.SerializeAsync(stream, requestAndResponseDump, options.JsonSerializerOptions)
+            .ConfigureAwait(false);
     }
-}
-
-/// <summary>
-/// Directory creation abstraction
-/// </summary>
-public interface IDirectoryCreator
-{
-    /// <summary>
-    /// Creates the directory (and any subfolders) and returns the full path
-    /// </summary>
-    /// <param name="path"></param>
-    /// <returns></returns>
-    public string CreateDirectory(string path);
-}
-
-internal class DirectoryCreator : IDirectoryCreator
-{
-    public string CreateDirectory(string path) => Directory.CreateDirectory(path).FullName;
 }
