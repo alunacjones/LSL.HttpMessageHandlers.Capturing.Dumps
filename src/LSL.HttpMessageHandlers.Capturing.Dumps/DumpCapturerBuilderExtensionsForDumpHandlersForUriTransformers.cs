@@ -12,6 +12,15 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 public static class DumpCapturerBuilderExtensionsForDumpHandlersForUriTransformers
 {
     /// <summary>
+    /// Adds a uri transforming delegate to the capture handler
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="delegate"></param>
+    /// <returns></returns>
+    public static IDumpCapturerBuilder AddUriTransformerDelegate(this IDumpCapturerBuilder source, Func<UriBuilder, UriBuilder> @delegate) => 
+        source.AddUriTransformer(sp => ActivatorUtilities.CreateInstance<DelegatingUriTransformer>(sp, @delegate));
+
+    /// <summary>
     /// Adds a factory that will build a <see cref="IUriTransformer"/> that will by used by the dump capturer.
     /// </summary>
     /// <param name="source"></param>

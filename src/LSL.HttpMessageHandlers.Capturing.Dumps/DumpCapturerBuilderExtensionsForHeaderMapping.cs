@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +10,17 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps;
 /// </summary>
 public static class DumpCapturerBuilderExtensionsForHeaderMapping
 {
+    /// <summary>
+    /// Adds a header mapper delegate to the dump capturer
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="delegate"></param>
+    /// <returns></returns>
+    public static IDumpCapturerBuilder AddHeaderMapperDelegate(this IDumpCapturerBuilder source, Func<IDictionary<string, IEnumerable<string>>, IDictionary<string, IEnumerable<string>>> @delegate)
+    {
+        return source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DelegatingHeaderMapper>(sp, @delegate));
+    }
+
     /// <summary>
     /// Uses the provided factory to resolve a <see cref="IHeaderMapper"/> to be used by the dump capturer
     /// </summary>
