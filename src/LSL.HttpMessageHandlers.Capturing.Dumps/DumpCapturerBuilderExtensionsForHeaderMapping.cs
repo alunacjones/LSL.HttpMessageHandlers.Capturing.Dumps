@@ -16,10 +16,8 @@ public static class DumpCapturerBuilderExtensionsForHeaderMapping
     /// <param name="source"></param>
     /// <param name="delegate"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddHeaderMapperDelegate(this IDumpCapturerBuilder source, Func<IDictionary<string, IEnumerable<string>>, IDictionary<string, IEnumerable<string>>> @delegate)
-    {
-        return source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DelegatingHeaderMapper>(sp, @delegate));
-    }
+    public static IDumpCapturerBuilder AddHeaderMapperDelegate(this IDumpCapturerBuilder source, Func<IDictionary<string, IEnumerable<string>>, IDictionary<string, IEnumerable<string>>> @delegate) => 
+        source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DelegatingHeaderMapper>(sp, @delegate));
 
     /// <summary>
     /// Uses the provided factory to resolve a <see cref="IHeaderMapper"/> to be used by the dump capturer
