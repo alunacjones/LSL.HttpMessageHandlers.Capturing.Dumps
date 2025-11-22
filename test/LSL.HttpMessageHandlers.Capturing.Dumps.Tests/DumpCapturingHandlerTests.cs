@@ -12,7 +12,6 @@ using LSL.ExecuteIf;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using LSL.HttpMessageHandlers.Capturing.Dumps.Tests.TestHelpers;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using RichardSzalay.MockHttp;
 
@@ -107,6 +106,7 @@ public class DumpCapturingHandlerTests
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandlerWithDefaults(configurator: c => c
+                    .AddContentTypeBasedDeserialiserDelegate(c => c.Headers.ContentType.MediaType == "application/other" ? "OtherThings" : null)
                     .AddContentTypeBasedDeserialiser<ErrorThrowingContentTypeDeserialiser>()
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c

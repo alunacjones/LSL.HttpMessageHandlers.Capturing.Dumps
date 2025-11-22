@@ -1,3 +1,7 @@
+using System;
+using System.Net.Http;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +24,26 @@ public static class DumpCapturerBuilderExtensionsForDumpHandlersForContentTypeBa
         source.Services.Configure<DumpCapturingOptions>(source.Name, c => c.ContentTypeBasedDeserialiserFactories.Add(factory));
         return source;
     }
+
+    /// <summary>
+    /// Adds an asynchronous content type deserialiser delegate
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="delegate"></param>
+    /// <returns></returns>
+    public static IDumpCapturerBuilder AddAsyncContentTypeBasedDeserialiserDelegate(this IDumpCapturerBuilder source, Func<HttpContent, Task<JsonNode?>> @delegate) => 
+        source.AddContentTypeBasedDeserialiser(sp => ActivatorUtilities.CreateInstance<DelegatingContentTypeBasedDeserialiser>(sp, @delegate));
+
+    /// <summary>
+    /// Adds a synchronous content type deserialiser delegate
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="delegate"></param>
+    /// <returns></returns>
+    public static IDumpCapturerBuilder AddContentTypeBasedDeserialiserDelegate(this IDumpCapturerBuilder source, Func<HttpContent, JsonNode?> @delegate) => 
+        source.AddAsyncContentTypeBasedDeserialiserDelegate(
+            new Func<HttpContent, Task<JsonNode?>>(httpContent => Task.FromResult(@delegate(httpContent)))
+        );
 
     /// <summary>
     /// Adds <typeparamref name="TDeserialiser"/> as a content type deserialiser
