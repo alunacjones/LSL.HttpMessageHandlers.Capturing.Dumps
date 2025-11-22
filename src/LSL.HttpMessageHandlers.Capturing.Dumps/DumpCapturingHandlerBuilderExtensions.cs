@@ -38,6 +38,7 @@ public static class DumpCapturingHandlerBuilderExtensions
             .FluentlyTryAddTransient<DelegatingOutputFolderResolver>()
             .FluentlyTryAddTransient<ICaptureContextToDumpDataMapper, CaptureContextToDumpDataMapper>()
             .FluentlyTryAddTransient<DelegatingFilenameResolver>()
+            .FluentlyTryAddSingleton<ErrorLoggingExecutor>()
             .FluentlyTryAddSingleton<ICompoundFactory, CompoundFactory>()
             .FluentlyTryAddSingleton<IDirectoryCreator, DirectoryCreator>()
             .FluentlyTryAddTransient(sp => new DefaultObfuscator(Options.DefaultName, sp.GetRequiredService<IOptionsSnapshot<DefaultObfuscatorOptions>>()));

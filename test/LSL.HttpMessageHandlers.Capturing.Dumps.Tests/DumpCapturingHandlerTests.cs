@@ -100,12 +100,15 @@ public class DumpCapturingHandlerTests
             })
             .AddHttpClient<MyTestClient>()
             .AddRequestAndResponseCapturing(c => c
-                .AddDumpCapturingHandlerWithDefaults(configurator: c => c.AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
+                .AddDumpCapturingHandlerWithDefaults(configurator: c => c
+                    .AddContentTypeBasedDeserialiser<ErrorThrowingContentTypeDeserialiser>()
+                    .AddContentTypeBasedDeserialiser<HtmlDeserialiser>())
                 .AddDumpCapturingHandler(c => c
                     .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler"))))
             .AddRequestAndResponseCapturing(c => c
                 .AddDumpCapturingHandler(c => c
                     .AddContentTypeBasedDeserialiser<HtmlDeserialiser>()
+                    .AddDumpHandler<ErrorThrowingDumpHandler>()
                     .AddDefaultContentTypeBasedDeserialisers(deserialisersExclusions)
                     .ExecuteIf(                        
                         useCustomHeaderMapper,
@@ -118,8 +121,10 @@ public class DumpCapturingHandlerTests
                             }).HeadersToRemove = ["X-Other-Remove"]
                         )
                     )
+                    .AddHeaderMapper<ErrorThrowingHeaderMapper>()                    
                     .AddQueryParameterObfuscatingUriTransformer(c => c.UseDefaultObfuscator(c => c.ObfuscatingSuffix = "**"))
                     .AddUriTransformer<TestUriTransformer>()
+                    .AddUriTransformer<ErrorThrowingUriTransformer>()
                     .AddDefaultDumpHandler(c => c
                         .ExecuteIf(outputFolderResolution == ResolutionOptions.Default, c => c.UseHomeFolderForOutput(c => c.SubFolder = "test-output/{host}"))
                         .ExecuteIf(outputFolderResolution == ResolutionOptions.Delegate, c => c.UseOutputFolderResolverDelegate(_ => "test-output2"))
