@@ -89,7 +89,7 @@ public static class DumpCapturingHandlerBuilderExtensions
         source
             .AssertNotNull(nameof(source))
             .AddDumpCapturingHandler(c => c
-                .With(b => configurator.SafeInvoke(b))
+                .With(configurator.MakeNullSafe())
                 .AddDefaultDumpHandler(defaultDumpHandlerConfigurator.MakeNullSafe())
                 .AddDefaultHeaderMapper(defaultHeaderMapperConfigurator.MakeNullSafe())
                 .AddDefaultContentTypeBasedDeserialisers()

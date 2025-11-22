@@ -1,6 +1,22 @@
 {
-    "cSpell.enabled": true,
-    "cSpell.words": [
-        "configurator"
-    ]
+  "cSpell.enabled": true,
+  "cSpell.words": ["configurator"],
+  "run-command.commands": [
+    {
+      "command": "get-childitem -Recurse -Force -Filter 'TestResults' | Remove-Item -Recurse -Force;$out = (join-path $env:Temp 'Coverage'); dotnet test --collect:\"XPlat Code Coverage\" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura;reportgenerator -filefilters:-*.g.cs -reports:**/TestResults/**/*.xml -targetdir:$out; if ($LASTEXITCODE -eq 0) { invoke-item \"$out\\index.html\" }",
+      "name": "Cover Tests",
+      "path": "${workspaceFolder}"
+    },
+    {
+      "command": "$repo =  (Split-Path -Path (Get-Location) -Leaf); $branch = (git rev-parse --abbrev-ref HEAD); Start-Process \"https://github.com/alunacjones/$repo/tree/$branch\"",
+      "name": "Open repository on remote",
+      "path": "${workspaceFolder}"
+    },
+    {
+      "name": "Open file",
+      "command": "start {file}",
+      "path": "${workspaceFolder}",
+      "parameters": ["{file}"]
+    }
+  ]
 }

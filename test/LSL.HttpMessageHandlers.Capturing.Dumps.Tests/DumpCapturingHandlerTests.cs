@@ -12,6 +12,7 @@ using LSL.ExecuteIf;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using LSL.HttpMessageHandlers.Capturing.Dumps.Tests.TestHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using RichardSzalay.MockHttp;
 
@@ -214,6 +215,29 @@ public class DumpCapturingHandlerTests
         using var assertionScope = new AssertionScope();
         
         capturedUrls.Should().HaveCount(1);        
+    }
+
+    [Test]
+    public async Task GivenAnErroringClient_ItShouldProvideAnException()
+    {
+        ExceptionDump e = null;
+        var provider = new ServiceCollection()
+            .AddHttpClient<MyTestClient>()
+            .AddRequestAndResponseCapturing(c => c
+                .AddDumpCapturingHandler(c => c
+                    .AddDumpHandlerDelegate(d => e = d.Exception))
+            )
+            .Services
+            .AddMockHttpMessageHandler()
+            .BuildServiceProvider();
+
+        var client = provider.GetRequiredService<MyTestClient>();
+
+        var toRun = client.SendRequest;
+        
+        await toRun.Should().ThrowExactlyAsync<ArgumentException>();
+
+        e.Should().NotBeNull();
     }
 
     [Test]

@@ -36,6 +36,25 @@ services.AddHttpClient<MyTestClient>()
 This action will configure the `DefaultDumpHandler`'s options which allows for configuration of output folders, file name providers
 and the `JsonSerializerOptions` that are used to output the `JSON` request and response dump to a file.
 
+The following example shows the adding of a content type deserialiser for `HTML` content using a custom content type deserialiser:
+
+!!! warning
+    This example intentionally uses the same filename for all requests. This should **NOT** be done in real scenarios
+    as multiple threads may attempt to write to the same file, resulting in failure.
+
+```csharp  { data-fiddle="kb8FSA" }
+services
+    .AddHttpClient<MyTestClient>()
+    .AddRequestAndResponseCapturing(c => c
+        .AddDumpCapturingHandlerWithDefaults(
+            defaultDumpHandlerConfigurator: c => c.UseFilenameResolverDelegate(dump => "my file")
+        )
+    )
+```
 ## The `defaultHeaderMapperConfigurator` parameter
 
 This action will configure the default header mapper's options. 
+
+## The `queryParameterObfuscatingUriTransformerConfigurator` parameter
+
+This action allows for further configuration of the query parameter obfuscating `IUriTransformer`
