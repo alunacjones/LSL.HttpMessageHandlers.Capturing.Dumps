@@ -19,59 +19,59 @@ namespace LSL.HttpMessageHandlers.Capturing.Dumps.Tests;
 
 public class DumpCapturingHandlerTests
 {
-    // [TestCase(false)]
-    // [TestCase(true)]
-    // [TestCase(
-    //     true, 
-    //     "text/plain", 
-    //     "Hello there\r\nAnd there's more!")]
-    // [TestCase(
-    //     true,
-    //     "text/html",
-    //     "<html><head></head><body><i></i></body></html>")]
+    [TestCase(false)]
+    [TestCase(true)]
+    [TestCase(
+        true, 
+        "text/plain", 
+        "Hello there\r\nAnd there's more!")]
+    [TestCase(
+        true,
+        "text/html",
+        "<html><head></head><body><i></i></body></html>")]
     [TestCase(
         true,
         "application/other",
         "Hello there")]
-    // [TestCase(
-    //     true, "application/other", "Hello there", 
-    //     ResolutionOptions.Custom)]
-    // [TestCase(
-    //     true,
-    //     "application/other",
-    //     "Hello there",
-    //     ResolutionOptions.Delegate)]
-    // [TestCase(
-    //     true,
-    //     "application/other",
-    //     "Hello there",
-    //     ResolutionOptions.Delegate, 
-    //     ResolutionOptions.Custom)]
-    // [TestCase(
-    //     true,
-    //     "application/other",
-    //     "Hello there",        
-    //     ResolutionOptions.Delegate, 
-    //     ResolutionOptions.Delegate)]
-    // [TestCase(
-    //     true, 
-    //     "text/other", 
-    //     "Hello there\r\nother\nstuff", 
-    //     ResolutionOptions.Delegate, 
-    //     ResolutionOptions.Delegate, 
-    //     DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
-    // [TestCase(
-    //     true, 
-    //     "application/other", 
-    //     "Hello there\r\nother\nstuff", 
-    //     ResolutionOptions.Delegate, 
-    //     ResolutionOptions.Delegate, 
-    //     DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser, 
-    //     TestHttpMethod.Get)]
-    // [TestCase(
-    //     true, 
-    //     "text/other", 
-    //     "Hello there\r\nother\nstuff")]    
+    [TestCase(
+        true, "application/other", "Hello there", 
+        ResolutionOptions.Custom)]
+    [TestCase(
+        true,
+        "application/other",
+        "Hello there",
+        ResolutionOptions.Delegate)]
+    [TestCase(
+        true,
+        "application/other",
+        "Hello there",
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Custom)]
+    [TestCase(
+        true,
+        "application/other",
+        "Hello there",        
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate)]
+    [TestCase(
+        true, 
+        "text/other", 
+        "Hello there\r\nother\nstuff", 
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate, 
+        DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser)]
+    [TestCase(
+        true, 
+        "application/other", 
+        "Hello there\r\nother\nstuff", 
+        ResolutionOptions.Delegate, 
+        ResolutionOptions.Delegate, 
+        DefaultContentTypeBasedDeserialisersExclusions.RedactingDeserialiser, 
+        TestHttpMethod.Get)]
+    [TestCase(
+        true, 
+        "text/other", 
+        "Hello there\r\nother\nstuff")]    
     public async Task WhenCreated_ItShouldDumpTheExpectedData(
         bool useCustomHeaderMapper,
         string requestContentType = null,

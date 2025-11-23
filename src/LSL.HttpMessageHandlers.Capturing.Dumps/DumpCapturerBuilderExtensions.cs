@@ -66,9 +66,7 @@ public static class DumpCapturerBuilderExtensionsForDumpHandlers
     /// <param name="handlerDelegate"></param>
     /// <returns></returns>
     public static IDumpCapturerBuilder AddAsyncDumpHandlerDelegate(this IDumpCapturerBuilder source, Func<RequestAndResponseDump, Task> handlerDelegate) => 
-        source.AddDumpHandler<DelegatingDumpHandler>(
-            name => source.Services.Configure<DelegatingDumpHandlerOptions>(name, c => c.DumpDelegate = handlerDelegate)
-        );
+        source.AddDumpHandler(sp => ActivatorUtilities.CreateInstance<DelegatingDumpHandler>(sp, handlerDelegate));
 
     /// <summary>
     /// Adds a synchronous dump handling delegate
