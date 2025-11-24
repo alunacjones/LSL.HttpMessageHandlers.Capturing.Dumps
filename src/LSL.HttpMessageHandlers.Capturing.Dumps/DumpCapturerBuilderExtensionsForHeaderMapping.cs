@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LSL.HttpMessageHandlers.Capturing.Core;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -40,10 +41,12 @@ public static class DumpCapturerBuilderExtensionsForHeaderMapping
     /// <param name="source"></param>
     /// <param name="configurator"></param>
     /// <returns></returns>
-    public static IDumpCapturerBuilder AddDefaultHeaderMapper(this IDumpCapturerBuilder source, Action<DefaultHeaderMapperOptions>? configurator = null)
+    public static IDumpCapturerBuilder AddDefaultHeaderMapper(this IDumpCapturerBuilder source, Action<IDefaultHeaderMapperBuilder>? configurator = null)
     {
         var name = OptionsHelper.BuildUniqueName(source.Name);
-        source.Services.Configure(name, configurator.MakeNullSafe());
+        var builder = new DefaultHeaderMapperBuilder(name, source.Services);
+        configurator.MakeNullSafe().Invoke(builder);
+
         return source.AddHeaderMapper(sp => ActivatorUtilities.CreateInstance<DefaultHeaderMapper>(sp, name));
     }
 

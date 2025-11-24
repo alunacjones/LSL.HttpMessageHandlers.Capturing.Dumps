@@ -1,3 +1,4 @@
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

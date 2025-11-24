@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Infrastructure;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;

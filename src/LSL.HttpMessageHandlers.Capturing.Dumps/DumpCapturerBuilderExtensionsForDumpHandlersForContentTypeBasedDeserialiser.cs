@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using LSL.HttpMessageHandlers.Capturing.Core;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;

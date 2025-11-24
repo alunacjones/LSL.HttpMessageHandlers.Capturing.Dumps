@@ -7,4 +7,3 @@ public interface IAmABuilder : IHaveAName, IHaveAServiceCollection
 {
     
 }
-

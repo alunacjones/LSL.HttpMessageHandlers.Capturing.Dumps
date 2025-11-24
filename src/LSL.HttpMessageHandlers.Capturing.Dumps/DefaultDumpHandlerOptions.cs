@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;

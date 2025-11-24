@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LSL.HttpMessageHandlers.Capturing.Dumps;
@@ -21,5 +22,5 @@ public class DefaultHeaderMapperOptions : IHaveAnObfuscatorFactory<DefaultHeader
     internal ServiceProviderBasedFactory<IObfuscator> ObfuscatorFactory { get; set; } = sp => sp.GetRequiredService<DefaultObfuscator>();
 
     ServiceProviderBasedFactory<IObfuscator> IHaveAnObfuscatorFactory<DefaultHeaderMapperOptions>.ObfuscatorFactory { get => ObfuscatorFactory; set => ObfuscatorFactory = value; }
-    DefaultHeaderMapperOptions IHaveAnObfuscatorFactory<DefaultHeaderMapperOptions>.Options => this;
+    DefaultHeaderMapperOptions IHaveAnObfuscatorFactory<DefaultHeaderMapperOptions>.Options => this;    
 }

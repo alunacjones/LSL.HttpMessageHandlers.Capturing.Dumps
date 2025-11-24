@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Diamond.Core.System.TemporaryFolder;
 using FluentAssertions;
@@ -117,10 +118,16 @@ public class DumpCapturingHandlerTests
                     {
                         headers.Add("X-Added", ["MyTest"]);
                         return headers;
-                    })
+                    }),
+                    defaultHeaderMapperConfigurator: c => c.Configure(c => c.Using(c => c.HeadersToObfuscate = ["Als"]))
                 )
                 .AddDumpCapturingHandler(c => c
-                    .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "second-handler")))
+                    .AddDefaultDumpHandler(c => c
+                        .UseOutputFolderResolverDelegate(c => "second-handler")
+                        .Configure(c => c
+                            .Using(c => c.JsonSerializerOptions.PropertyNamingPolicy = new ApplySuffixNamingPolicy()))
+                    )
+                )
                 .AddDumpCapturingHandler(c => c
                     .AddDefaultContentTypeBasedDeserialisers()
                     .AddDefaultDumpHandler(c => c.UseOutputFolderResolverDelegate(c => "third-handler")))                    
@@ -269,5 +276,10 @@ public class DumpCapturingHandlerTests
 
         // Act & Assert
         providerAction.Should().ThrowExactly<ArgumentNullException>();
+    }
+
+    public class ApplySuffixNamingPolicy : JsonNamingPolicy
+    {
+        public override string ConvertName(string name) => $"{name}Suffix";
     }
 }

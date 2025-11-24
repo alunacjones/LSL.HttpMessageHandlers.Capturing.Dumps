@@ -1,6 +1,7 @@
 using System;
 using LSL.HttpMessageHandlers.Capturing.Core;
 using LSL.HttpMessageHandlers.Capturing.Dumps.Infrastructure;
+using LSL.HttpMessageHandlers.Capturing.Dumps.Internals;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -84,7 +85,7 @@ public static class DumpCapturingHandlerBuilderExtensions
         this ICapturingHandlerBuilder source,
         Action<IDumpCapturerBuilder>? configurator = null,
         Action<IDefaultDumpHandlerBuilder>? defaultDumpHandlerConfigurator = null,
-        Action<DefaultHeaderMapperOptions>? defaultHeaderMapperConfigurator = null,
+        Action<IDefaultHeaderMapperBuilder>? defaultHeaderMapperConfigurator = null,
         Action<QueryParameterObfuscatingUriTransformerOptions>? queryParameterObfuscatingUriTransformerConfigurator = null) => 
         source
             .AssertNotNull(nameof(source))

@@ -47,13 +47,16 @@ services
     .AddHttpClient<MyTestClient>()
     .AddRequestAndResponseCapturing(c => c
         .AddDumpCapturingHandlerWithDefaults(
-            defaultDumpHandlerConfigurator: c => c.UseFilenameResolverDelegate(dump => "my file")
+            defaultDumpHandlerConfigurator: c => c
+                .UseFilenameResolverDelegate(dump => "my file")
         )
     )
 ```
 ## The `defaultHeaderMapperConfigurator` parameter
 
 This action will configure the default header mapper's options. 
+
+The following example shows the adding of a 
 
 ## The `queryParameterObfuscatingUriTransformerConfigurator` parameter
 
