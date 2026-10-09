@@ -15,7 +15,7 @@ public class ContentAndHeadersDump
         new ReadOnlyDictionary<string, IEnumerable<string>>(new Dictionary<string, IEnumerable<string>>());
 
     /// <summary>
-    /// The content of thew request or response
+    /// The content of the request or response
     /// </summary>
     public object? Content { get; set; } = default!;    
 }
